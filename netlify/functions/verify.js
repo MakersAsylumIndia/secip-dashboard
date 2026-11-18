@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2026 Maker's Asylum
+// Copyright 2026 Maker's Asylum Foundation
 const { sign, verify } = require('../../lib/util');
 const DAYS = 14;
 

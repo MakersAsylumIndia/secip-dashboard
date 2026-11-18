@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2026 Maker's Asylum
+// Copyright 2026 Maker's Asylum Foundation
 const { sign, airtable, formulaString, json } = require('../../lib/util');
 
 // Always answers the same way, so nobody can use this form to test who is registered.

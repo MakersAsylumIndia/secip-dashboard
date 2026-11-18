@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2026 Maker's Asylum
+// Copyright 2026 Maker's Asylum Foundation
 const { verify, readCookie, airtable, json } = require('../../lib/util');
 
 const days = rec => [...Array(10)].map((_, i) => !!rec[`Day ${i + 1}`]);

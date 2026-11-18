@@ -73,7 +73,7 @@ Everyone taking part in this project is expected to follow our [Code of Conduct]
 
 ## Licence
 
-The code in this repository is licensed under the [Apache License 2.0](LICENSE) (SPDX: `Apache-2.0`). See [NOTICE](NOTICE) for attribution. You may use, change and redistribute it, including commercially, as long as you keep the copyright and licence notices and mark files you change. The licence grants no rights to the "SECIP" or "Maker's Asylum" names.
+The code in this repository is licensed under the [Apache License 2.0](LICENSE) (SPDX: `Apache-2.0`). See [NOTICE](NOTICE) for attribution. You may use, change and redistribute it, including commercially, as long as you keep the copyright and licence notices and mark files you change. The licence grants no rights to the "SECIP", "Maker's Asylum" or "Maker's Asylum Foundation" names.
 
 What is not covered:
 

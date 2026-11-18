@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2026 Maker's Asylum
+// Copyright 2026 Maker's Asylum Foundation
 const { verify, readCookie, json } = require('../../lib/util');
 
 // Past SECIP cohorts. Each base needs an "Open House Submission" table, and the
