@@ -63,6 +63,7 @@ main{flex:1;padding:30px 34px;max-width:1320px;min-width:0}
 .when{margin-left:auto;font-size:12px;background:var(--o2);border-radius:20px;padding:2px 10px;white-space:nowrap}
 .when.soon{background:var(--o);color:#fff}
 .time{font-size:13px;color:var(--m);white-space:nowrap;min-width:88px}
+.time .tz{font-size:12px;color:var(--o)}
 #map{height:270px;border-radius:12px;background:var(--o3)}
 .stats{display:flex;gap:10px;margin-top:10px}.stat{flex:1;background:var(--o3);border-radius:10px;padding:8px;text-align:center;font-size:12px}.stat b{display:block;font-size:22px;color:var(--o)}
 .tl{display:flex;position:relative;margin-top:24px;overflow-x:auto;padding-bottom:4px}
@@ -152,7 +153,11 @@ const todayISO = () => new Date().toLocaleDateString('en-CA');
 const fmtDate = (d, o = { day: 'numeric', month: 'short' }) => d ? new Date(d.length === 10 ? d + 'T00:00' : d).toLocaleDateString('en-GB', o) : '';
 const ist = d => new Date(d).toLocaleTimeString('en-GB', { timeZone: 'Asia/Kolkata', hour: 'numeric', minute: '2-digit' });
 const local = d => new Date(d).toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit' });
-const sameZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone === 'Asia/Kolkata';
+const sameZone = () => ['Asia/Kolkata', 'Asia/Calcutta'].includes(Intl.DateTimeFormat().resolvedOptions().timeZone);
+const zoneCity = () => (Intl.DateTimeFormat().resolvedOptions().timeZone || 'your time').split('/').pop().replace(/_/g, ' ');
+const dayShift = d => { const a = new Date(d).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }), b = new Date(d).toLocaleDateString('en-CA'); return a === b ? '' : b > a ? ' (+1 day)' : ' (−1 day)'; };
+const timeCell = d => d ? `${h(ist(d))} IST${sameZone() ? '' : `<br><span class="tz">${h(local(d))} ${h(zoneCity())}${dayShift(d)}</span>`}` : '';
+const tzNote = () => sameZone() ? 'Times are in India Standard Time.' : `Times are in India Standard Time, with ${h(zoneCity())} time underneath.`;
 const timeLabel = a => a.start ? `${ist(a.start)} IST${sameZone() ? '' : ` · ${local(a.start)} your time`}` : '';
 const store = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
 
@@ -246,7 +251,7 @@ function mentorGallery(D, showStatus) {
 function agendaHTML(C, field) {
   if (!C.dates.length) return '<p class="empty">The agenda will appear here once it is added in Airtable.</p>';
   return C.dates.map((d, i) => `<div class="day"><h3>Day ${i + 1}, ${fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long' })}</h3>${C.sessions(d).map(a =>
-    `<div class="row"><span class="time">${h(ist(a.start))}</span><div><b>${h(a.session)}</b>${a.facilitator ? `<div class="sub">${h(a.facilitator)}${a.format ? ', ' + h(a.format.toLowerCase()) : ''}</div>` : ''}
+    `<div class="row"><span class="time">${timeCell(a.start)}</span><div><b>${h(a.session)}</b>${a.facilitator ? `<div class="sub">${h(a.facilitator)}${a.format ? ', ' + h(a.format.toLowerCase()) : ''}</div>` : ''}
     ${lines(a[field]).map(t => `<div class="sub">• ${h(t)}</div>`).join('')}
     ${[a.slides && `<a href="${safeUrl(a.slides)}" target="_blank" rel="noopener">Slides</a>`, a.recording && `<a href="${safeUrl(a.recording)}" target="_blank" rel="noopener">Recording</a>`].filter(Boolean).join(' · ')}</div></div>`).join('')}</div>`).join('');
 }
@@ -403,7 +408,7 @@ function studentApp(D) {
         draw(''); } },
     pastPage(sdgOf(me.sdg)),
     { id: 'mentors', label: 'Mentor gallery', render: () => g.html, after: g.wire },
-    { id: 'agenda', label: 'Agenda', render: () => `<div class="card"><h2>Full agenda</h2><p class="sub">Times are in India Standard Time.</p>${agendaHTML(C, 'studentTodo')}</div>` },
+    { id: 'agenda', label: 'Agenda', render: () => `<div class="card"><h2>Full agenda</h2><p class="sub">${tzNote()}</p>${agendaHTML(C, 'studentTodo')}</div>` },
   ], me.uni);
 }
 
@@ -441,10 +446,11 @@ function committeeApp(D) {
       <div class="card" style="margin-top:18px"><h2>Where students are coming from</h2><div id="map"></div>${mapStats(D)}</div>`,
       after: () => drawMap(D, $('#map')) },
     { id: 'mentors', label: 'Mentors', render: () => `<div class="grid" style="margin-bottom:18px">
-      <div class="card"><h2>Mentor summary</h2><div class="stats" style="margin-top:0"><div class="stat"><b>${D.mentors.length}</b>Listed</div><div class="stat"><b>${conf}</b>Confirmed</div><div class="stat"><b>${D.mentors.length - conf}</b>To confirm</div></div></div>
+      <div class="card"><h2>Mentor summary</h2><div class="stats" style="margin-top:0"><div class="stat"><b>${D.mentors.length}</b>Listed</div><div class="stat"><b>${conf}</b>Confirmed</div><div class="stat"><b>${D.mentors.length - conf}</b>To confirm</div></div>
+        <h2 style="margin-top:18px">Guide for mentors</h2>${(() => { const g = D.links.filter(l => /mentor/i.test(l.name)); return g.length ? linksHTML(g) + '<p class="sub" style="margin-top:8px">Committee members can edit this document directly. Share it when you invite your mentors.</p>' : '<p class="empty">Add the mentor guide to Important Links in Airtable (with "mentor" in its name) and it will show here.</p>'; })()}</div>
       <div class="card s2"><h2>Mentor sessions and your role</h2>${D.agenda.filter(a => /mentor/i.test(a.session) && a.scTodo).map(a => `<div class="row"><span class="when">Day ${h(a.day)} · ${fmtDate(a.date)}</span><div><b>${h(a.session)}</b>${a.notes ? `<div class="sub">${h(a.notes)}</div>` : ''}${lines(a.scTodo).map(t => `<div class="sub">• ${h(t)}</div>`).join('')}</div></div>`).join('') || '<p class="empty">Mentor sessions will show here from the agenda.</p>'}</div></div>${g.html}`,
       after: g.wire },
-    { id: 'agenda', label: 'Agenda and roles', render: () => `<div class="card"><h2>Agenda with committee roles</h2><p class="sub">Times are in India Standard Time. Your tasks are listed under each session.</p>${agendaHTML(C, 'scTodo')}</div>` },
+    { id: 'agenda', label: 'Agenda and roles', render: () => `<div class="card"><h2>Agenda with committee roles</h2><p class="sub">${tzNote()} Your tasks are listed under each session.</p>${agendaHTML(C, 'scTodo')}</div>` },
     { id: 'attendance', label: 'Attendance', render: () => `<div class="card"><h2>Student attendance</h2><input class="search" id="aq" type="search" placeholder="Filter by name, university or team" aria-label="Filter attendance"><div class="wrapx"><table><thead><tr><th>Student</th><th>University</th><th>Team</th><th>Days 1 to 10</th><th>Total</th></tr></thead><tbody id="att"></tbody></table></div></div>`,
       after: () => { const draw = () => { const q = ($('#aq').value || '').toLowerCase(); const rows = D.attendance.filter(s => [s.name, s.uni, s.team].join(' ').toLowerCase().includes(q));
         $('#att').innerHTML = rows.length ? rows.map(s => `<tr><td>${h(s.name)}</td><td>${h(s.uni)}</td><td>${h(s.team)}</td><td>${s.att.map(a => `<span class="att ${a ? 'y' : ''}"></span>`).join('')}</td><td>${s.att.filter(Boolean).length}</td></tr>`).join('') : '<tr><td colspan="5" class="empty">No students yet.</td></tr>'; };
