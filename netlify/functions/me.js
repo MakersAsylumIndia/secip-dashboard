@@ -51,6 +51,15 @@ exports.handler = async event => {
       const me = students.find(x => (x['Email address'] || '').trim().toLowerCase() === s.email);
       if (!me) return json(401, { error: 'signed-out' });
       data.me = { ...pub(me), degree: me.Degree || '', year: me['Year of study'] || '', skills: me.Skills || '', profile: me['Professional profile'] || '', att: days(me) };
+      // Steering Committee contacts so students can reach their university's representative.
+      // Only name, university and work email; internal role notes stay hidden.
+      const repOf = Object.fromEntries(universities.map(u => [(u.Name || '').trim().toLowerCase(), (u['SC representative'] || '').toLowerCase()]));
+      const isRep = x => { const last = x.Name.trim().split(/\s+/).pop().toLowerCase(); return !!last && (repOf[(x.University || '').trim().toLowerCase()] || '').includes(last); };
+      const seen = new Set();
+      data.contacts = (await airtable('Steering Committee'))
+        .filter(x => x.Name && x.Email)
+        .filter(x => { const k = x.Email.trim().toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })
+        .map(x => ({ name: x.Name, uni: x.University || '', email: x.Email.trim(), rep: isRep(x) }));
     } else {
       const [committee, tasks, updates] = await Promise.all([
         airtable('Steering Committee'),
