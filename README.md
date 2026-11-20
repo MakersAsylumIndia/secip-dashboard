@@ -1,6 +1,6 @@
 # SECIP 2027 dashboards
 
-One website with two views. Students and steering committee members sign in with their email (a one-time link, no passwords), and the site shows them the right dashboard. Everything comes live from the **SECIP Jan 2027** Airtable base, so editing Airtable updates the site.
+One website with two views. Students and steering committee members sign in with their email (a one-time link, no passwords), and the site shows them the right dashboard. Everything comes live from the **SECIP Jan 2027** Airtable base, so editing Airtable updates the site within a minute or two.
 
 ## What you need (all have free tiers)
 
@@ -13,7 +13,7 @@ One website with two views. Students and steering committee members sign in with
 
 ## Setup, step by step
 
-1. **Airtable token.** Airtable > Builder hub > Personal access tokens > Create. Scope: `data.records:read` only. Access: the *SECIP Jan 2027* base only. Copy the token.
+1. **Airtable token.** Airtable > Builder hub > Personal access tokens > Create. Scopes: `data.records:read`, plus `data.records:write` if you want committee checklist ticks shared (see *Shared checklist* below). Access: the *SECIP Jan 2027* base (and past cohort bases, read-only use, for the Past projects page). Copy the token.
 2. **Resend.** Sign up, add your domain under *Domains*, and add the DNS records it shows you at your domain registrar. Wait until it says *Verified*, then create an API key.
 3. **Netlify.** Add new site > *Deploy manually* and drag this whole folder in (or connect a GitHub repo containing it).
 4. **Environment variables.** Netlify > Site configuration > Environment variables. Add the six values from `.env.example`. For `SESSION_SECRET`, use a long random string (40+ characters).
@@ -22,11 +22,11 @@ One website with two views. Students and steering committee members sign in with
 
 ## Who can sign in
 
-* Anyone in **Steering Committee** with an email gets the committee view.
+* Anyone in **Steering Committee** with an email gets the committee view. They can also open the student view with **See the student view** in the sidebar (and come back the same way). If they are in **Students** too, they see their own student record there; otherwise a stand-in profile.
 * Anyone in **Students** with an email address gets the student view.
 * Anyone else gets the same "check your inbox" message but no email, so the form can't be used to find out who is registered.
 
-Sign-in links last 15 minutes. Sessions last 14 days. **Sign out** is in the sidebar.
+Sign-in links last 15 minutes. Sessions last 14 days. **Sign out** is in the sidebar. Each address can be sent at most two sign-in links every 30 minutes (this limits emails, not devices: one link works on a phone and a laptop).
 
 ## Where each part of the site comes from
 
@@ -37,20 +37,31 @@ Sign-in links last 15 minutes. Sessions last 14 days. **Sign out** is in the sid
 | Community map | Universities (latitude/longitude) + Students |
 | Mentor gallery (with photos) | Mentors (Photo, Expertise, Sessions, Confirmed…) |
 | Partner tiles | Partners (upload each Logo) |
-| Committee checklist and road to launch | SC Tasks (tick *Milestone* to show on the road) |
+| Committee checklist and road to launch | SC Tasks (tick *Milestone* to show on the road; *Done by* lists the universities that have finished a task) |
 | University status | Universities |
 | Updates | Updates |
 | Attendance | Students (Day 1 to Day 10) |
 
 ## Privacy
 
-Student emails never leave the server. Other students see only name, university, country, team and goals. Committee-only fields (committee to-dos, notes, attendance, task list) are only sent to committee sessions. The Airtable token stays on the server.
+Student emails are never sent to anyone's browser. They stay on the server side: in Airtable, and in the site's private Netlify Blobs cache (see *Speed and Airtable limits*). Other students see only name, university, country, team and goals. Committee-only fields (committee to-dos, notes, attendance, task list) are only sent to committee sessions. The Airtable token stays on the server.
+
+## Shared checklist
+
+Each task in **SC Tasks** has a **Done by** field listing the universities (and Maker's Asylum) that have finished it. When a committee member ticks a task on the dashboard, their own university (from their row in **Steering Committee**) is added to that list, so colleagues at the same university see the same ticks on any device, and everyone sees who has done what. You can also edit **Done by** by hand in Airtable.
+
+This needs the Airtable token to have the `data.records:write` scope. With a read-only token the dashboard still works; a tick is then kept only on the device where it was made, and the dashboard says so.
+
+## Speed and Airtable limits
+
+Airtable allows 5 requests a second per base, and a whole cohort opening the dashboard at the same minute would go past that. So the site reads the tables once, keeps that snapshot for a minute in [Netlify Blobs](https://docs.netlify.com/build/data-and-storage/netlify-blobs/) (private storage that comes with the site, nothing to set up), and serves everyone from it. An edit in Airtable therefore takes a minute or two to show. Past projects are kept for an hour.
+
+If Netlify Blobs is ever unavailable, the functions fall back to reading Airtable directly. To check which path served a page, look at the `X-Data-Source` response header of `/api/me`: `memory` or `shared` (cache), `airtable` (this request refreshed it), or `stale` (an older copy, because a refresh was under way or Airtable could not be reached).
 
 ## Known limits
 
-* Checklist and to-do ticks are saved in each person's browser, not in Airtable.
+* Students' to-do ticks are saved in each person's browser, not in Airtable.
 * A sign-in link can be reused until it expires (15 minutes).
-* No rate limiting on the sign-in form yet. Fine for a cohort this size; add Netlify's rate limiting if it's ever abused.
 
 ## Past projects gallery
 

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Maker's Asylum Foundation
 const { verify, readCookie, json } = require('../../lib/util');
+const { shared } = require('../../lib/store');
 
 // Past SECIP cohorts. Each base needs an "Open House Submission" table, and the
 // AIRTABLE_TOKEN must have read access to the base. Override with PAST_BASES,
@@ -44,7 +45,12 @@ async function loadBase([base, cohort]) {
   let recs = null;
   for (const t of TABLES) {
     try { recs = await get(base, t); break; }
-    catch (e) { if (e.status !== 404 && e.status !== 422) { console.error('Past projects', cohort, e.message); return []; } }
+    catch (e) {
+      if (e.status === 404 || e.status === 422) continue;
+      console.error('Past projects', cohort, e.message);
+      // Busy or unreachable (null) is worth another try soon; no access is not.
+      return !e.status || e.status === 429 || e.status >= 500 ? null : [];
+    }
   }
   if (!recs || !recs.length) return [];
   const keys = [...new Set(recs.flatMap(r => Object.keys(r.fields)))];
@@ -71,22 +77,38 @@ async function loadBase([base, cohort]) {
       name: text(kName && f[kName]) || text(kTeam && f[kTeam]) || 'Untitled project',
       team: text(kTeam && f[kTeam]), sdg: text(kSdg && f[kSdg]), sdgNums: sdgNums(kSdg && f[kSdg]),
       problem: text(kProb && f[kProb]), solution: text(kSol && f[kSol]), members,
-      image: (files.find(a => /^image\//.test(a.type)) || {}).url || (files.find(a => a.thumb) || {}).thumb || '',
+      // Cards only need a thumbnail; the full files are linked from the project's own page.
+      image: (img => img && (img.thumb || img.url))(files.find(a => /^image\//.test(a.type))) || (files.find(a => a.thumb) || {}).thumb || '',
       deck: deck.map(({ name, url }) => ({ name, url })),
       files: [...docUrls, ...files.filter(a => !deck.includes(a)).map(({ name, url }) => ({ name, url }))],
     };
   }).filter(p => p.problem || p.solution);
 }
 
-// Attachment links from Airtable expire after a couple of hours, so cache for 1 hour.
-let cache = { at: 0, data: null };
+// Attachment links from Airtable expire after a couple of hours, so the list is kept for
+// 1 hour (in the shared cache, so the 12 cohort bases are read once, not once per visitor).
+// If Airtable was busy for a cohort (null), show its last good copy while that is under
+// 90 minutes old, and try again in 5 minutes.
+const HOUR = 36e5, KEEP_MS = 1.5 * HOUR, RETRY_MS = 5 * 60 * 1000;
+
+async function loadAll(prev) {
+  const now = Date.now(), list = bases(), byBase = {}, old = (prev && prev.byBase) || {};
+  const loaded = await Promise.all(list.map(b => loadBase(b).catch(e => { console.error('Past projects', b[1], e.message); return []; })));
+  list.forEach(([base], i) => {
+    byBase[base] = loaded[i] ? { at: now, data: loaded[i] } : old[base] && now - old[base].at < KEEP_MS ? old[base] : { at: 0, data: [] };
+  });
+  return { value: { projects: list.flatMap(([base]) => byBase[base].data), byBase }, ttl: loaded.includes(null) ? RETRY_MS : HOUR };
+}
 
 exports.handler = async event => {
   const s = verify(readCookie(event.headers));
   if (!s || s.t !== 'session') return json(401, { error: 'signed-out' });
-  if (!cache.data || Date.now() - cache.at > 36e5) {
-    const all = (await Promise.all(bases().map(loadBase))).flat();
-    cache = { at: Date.now(), data: all };
+  try {
+    const { value } = await shared(event, 'past-projects', { maxAge: HOUR, staleAge: KEEP_MS, load: loadAll });
+    // The browser may reuse the list for 10 minutes, so moving between pages doesn't call this again.
+    return json(200, { projects: value.projects }, { 'Cache-Control': 'private, max-age=600' });
+  } catch (err) {
+    if (!err.busy) console.error(err);
+    return json(200, { projects: [] }); // not cached by the browser, so the next visit tries again
   }
-  return json(200, { projects: cache.data });
 };

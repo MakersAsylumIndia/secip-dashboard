@@ -3,121 +3,143 @@
 <html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SECIP 2027</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%23F26B1D'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%23FF6A13' stroke='%231B1035' stroke-width='6'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
 <style>
-:root{--o:#F26B1D;--o2:#FFE3D0;--o3:#FFF4EC;--bg:#FFFAF6;--line:#F6C9A8;--t:#2a2a2a;--m:#86644e;--g:#2f8f6b}
+/* Palette: deep ink for text and outlines, brand orange, and violet, pink, yellow and mint accents.
+   Text on a colour is always ink or white at 4.5:1 or better; orange is never used for small text. */
+:root{--ink:#1B1035;--o:#FF6A13;--ot:#B93E06;--o2:#FFE1CC;--o3:#FFF3E8;--v:#6D3BF5;--v2:#ECE5FF;--pk:#FF7DB0;--pk2:#FFE0EC;--y:#FFD43B;--y2:#FFF4C2;--g:#0B7A5E;--g2:#D4F5E9;--mint:#2CCB9F;--red:#B3261E;--bg:#FFF9F2;--soft:#E4DDF5;--line:#1B1035;--t:#1B1035;--m:#5B5370;--sh:4px 4px 0 var(--ink)}
 *{box-sizing:border-box}
-body{margin:0;font-family:"Bricolage Grotesque",system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--t);line-height:1.45}
+body{margin:0;font-family:"Bricolage Grotesque",system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg) radial-gradient(var(--o2) 1.3px,transparent 1.3px) 0 0/22px 22px;color:var(--t);line-height:1.45}
 a{color:inherit}
-:focus-visible{outline:3px solid var(--o);outline-offset:2px}
+:focus-visible{outline:3px solid var(--v);outline-offset:2px}
 button{font:inherit}
 [hidden]{display:none!important}
 /* Sign-in */
 .sitefoot{text-align:center;font-size:12px;color:var(--m);padding:14px 16px}
-.sitefoot a{color:var(--o);font-weight:600}
+.sitefoot a{color:var(--ot);font-weight:600}
 .signin{min-height:calc(100vh - 48px);display:grid;place-items:center;padding:24px}
-.signin .box{background:#fff;border:1.5px solid var(--line);border-radius:22px;padding:36px;max-width:420px;width:100%}
-.signin h1{font-size:44px;margin:0 0 4px;color:var(--o);font-weight:800;letter-spacing:-.02em}
+.signin .box{background:#fff;border:2px solid var(--ink);border-radius:24px;padding:36px;max-width:420px;width:100%;box-shadow:8px 8px 0 var(--v)}
+.signin h1{font-size:44px;margin:0 0 10px;font-weight:800;letter-spacing:-.02em;display:inline-block;background:linear-gradient(transparent 58%,var(--y) 58%);padding:0 4px}
 .signin p{color:var(--m);margin:0 0 22px}
 .signin label{display:block;font-weight:600;margin-bottom:6px}
-.signin input{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;font:inherit;font-size:16px}
-.signin .msg{margin-top:16px;padding:12px 14px;border-radius:12px;background:var(--o3)}
-.btn{display:inline-block;background:var(--o);color:#fff;border:0;border-radius:10px;padding:10px 16px;font-weight:600;cursor:pointer;text-decoration:none;font-size:14px}
+.signin input{width:100%;padding:12px 14px;border:2px solid var(--ink);border-radius:12px;font:inherit;font-size:16px}
+.signin .msg{margin-top:16px;padding:12px 14px;border-radius:12px;background:var(--y2);border:1.5px solid var(--ink)}
+.btn{display:inline-block;background:var(--o);color:var(--ink);border:2px solid var(--ink);border-radius:12px;padding:9px 16px;font-weight:700;cursor:pointer;text-decoration:none;font-size:14px;box-shadow:3px 3px 0 var(--ink);transition:transform .08s,box-shadow .08s}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
+.btn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
 .btn.wide{width:100%;margin-top:14px;padding:13px;font-size:16px}
-.btn.quiet{background:none;color:var(--o);padding:6px 8px}
+.btn.quiet{background:none;color:var(--v);padding:6px 8px;border:0;box-shadow:none}
 /* Layout */
 .app{display:flex;min-height:100vh}
-nav{width:224px;flex-shrink:0;background:#fff;border-right:1.5px solid var(--line);padding:24px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
-nav .logo{font-weight:800;font-size:23px;color:var(--o);padding:0 10px;letter-spacing:-.01em}
-nav .who{font-size:13px;color:var(--m);padding:2px 10px 24px}
-nav button{display:block;width:100%;text-align:left;background:none;border:0;padding:10px 12px;border-radius:10px;margin:2px 0;cursor:pointer;font-weight:500;color:var(--t)}
-nav button[aria-current="page"],nav button:hover{background:var(--o);color:#fff}
-nav .out{margin-top:auto;color:var(--m);font-size:14px;padding:10px 12px;text-decoration:none}
+nav{width:232px;flex-shrink:0;background:var(--ink);color:#fff;padding:24px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;overflow-y:auto}
+nav .logo{font-weight:800;font-size:24px;color:var(--y);padding:0 10px;letter-spacing:-.01em}
+nav .who{font-size:13px;color:#CFC8E8;padding:2px 10px 24px}
+nav button{display:block;width:100%;text-align:left;background:none;border:0;padding:10px 12px;border-radius:12px;margin:2px 0;cursor:pointer;font-weight:500;color:#fff}
+nav button:hover{background:rgba(255,255,255,.14)}
+nav button[aria-current="page"]{background:var(--y);color:var(--ink);font-weight:700}
+nav .out{margin-top:auto;color:#CFC8E8;font-size:14px;padding:10px 12px;text-decoration:none}
+nav .out:hover{color:#fff;text-decoration:underline}
+nav .out+.out{margin-top:0}
+nav .swap{color:var(--y);font-weight:600}
+.note{background:var(--v2);border:1.5px solid var(--v);border-radius:14px;padding:10px 14px;margin-bottom:16px;font-size:14px}
 main{flex:1;padding:30px 34px;max-width:1320px;min-width:0}
-.top{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:22px;flex-wrap:wrap}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:24px;flex-wrap:wrap}
 .top h1{font-size:46px;margin:0;line-height:1;font-weight:800;letter-spacing:-.02em}
 .top .meta{color:var(--m);margin-top:8px}
-.pill{display:inline-block;background:var(--o);color:#fff;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;margin-left:8px;vertical-align:middle}
-.count{background:var(--o);color:#fff;border-radius:16px;padding:12px 20px;text-align:center;min-width:130px}
-.count b{display:block;font-size:34px;line-height:1}
-.grid{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:18px}
-.card{background:#fff;border:1.5px solid var(--line);border-radius:18px;padding:20px;min-width:0}
-.card h2{margin:0 0 12px;font-size:19px;font-weight:600}
+.pill{display:inline-block;background:var(--pk);color:var(--ink);font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;margin-left:8px;vertical-align:middle;border:1.5px solid var(--ink)}
+.count{background:var(--v);color:#fff;border:2px solid var(--ink);border-radius:18px;padding:12px 20px;text-align:center;min-width:130px;box-shadow:var(--sh);transform:rotate(-2deg);font-weight:600}
+.count b{display:block;font-size:36px;line-height:1;color:var(--y)}
+.grid{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:20px}
+.card{background:#fff;border:2px solid var(--ink);border-radius:20px;padding:20px;min-width:0;box-shadow:var(--sh)}
+.card h2{margin:0 0 12px;font-size:19px;font-weight:800;display:flex;align-items:center;gap:9px}
+.card h2:before{content:"";width:12px;height:12px;border-radius:50%;background:var(--o);border:2px solid var(--ink);flex-shrink:0}
+.grid>.card:nth-child(4n+2) h2:before{background:var(--v)}.grid>.card:nth-child(4n+3) h2:before{background:var(--pk)}.grid>.card:nth-child(4n+4) h2:before{background:var(--mint)}
+.card .card{box-shadow:none;border-width:1.5px;border-radius:16px}
 .s2{grid-column:span 2}.s3{grid-column:1/-1}.r2{grid-row:span 2}
-.brief{background:var(--o3);border-color:var(--o)}.brief p{margin:8px 0}.brief strong{color:var(--o)}
+.brief{background:var(--y)}.brief p{margin:8px 0}.brief strong{background:linear-gradient(transparent 55%,#fff 55%);padding:0 2px}
+.brief h2:before{background:#fff!important}
 .sub{font-size:13px;color:var(--m)}
-.tag{display:inline-block;background:var(--o2);border-radius:20px;padding:3px 11px;margin:3px 4px 3px 0;font-size:13px}
-.chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
-.chips button{border:0;background:var(--o2);border-radius:20px;padding:4px 12px;font-size:13px;cursor:pointer}
-.chips button[aria-pressed="true"]{background:var(--o);color:#fff}
-.lnk{display:flex;flex-direction:column;gap:2px;padding:10px 12px;margin:6px 0;border-radius:10px;background:var(--o3);text-decoration:none;font-size:14px}
-.lnk:hover{background:var(--o);color:#fff}.lnk span:first-child{font-weight:600}.lnk span:last-child{opacity:.75;font-size:12px}.lnk span:last-child:empty{display:none}
-.row{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--o2)}
+.tag{display:inline-block;background:var(--y2);border-radius:20px;padding:3px 11px;margin:3px 4px 3px 0;font-size:13px}
+.tag:nth-of-type(4n+2){background:var(--v2)}.tag:nth-of-type(4n+3){background:var(--g2)}.tag:nth-of-type(4n+4){background:var(--pk2)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.chips button{border:1.5px solid var(--ink);background:#fff;color:var(--ink);border-radius:20px;padding:4px 12px;font-size:13px;cursor:pointer}
+.chips button:hover{background:var(--y2)}
+.chips button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.lnk{display:flex;flex-direction:column;gap:2px;padding:10px 12px;margin:8px 0;border-radius:12px;background:var(--o3);border:1.5px solid var(--ink);text-decoration:none;font-size:14px;transition:transform .08s}
+.lnk:hover{background:var(--y);transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink)}.lnk span:first-child{font-weight:700}.lnk span:last-child{color:var(--m);font-size:12px}.lnk:hover span:last-child{color:var(--ink)}.lnk span:last-child:empty{display:none}
+.row{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1.5px dashed var(--soft)}
 .row:last-child{border-bottom:0}
-.row input[type=checkbox]{accent-color:var(--o);width:18px;height:18px;margin-top:2px;flex-shrink:0}
-.when{margin-left:auto;font-size:12px;background:var(--o2);border-radius:20px;padding:2px 10px;white-space:nowrap}
-.when.soon{background:var(--o);color:#fff}
+.row input[type=checkbox]{accent-color:var(--v);width:19px;height:19px;margin-top:2px;flex-shrink:0}
+.when{margin-left:auto;font-size:12px;background:var(--v2);border-radius:20px;padding:2px 10px;white-space:nowrap}
+.when.soon{background:var(--o);color:var(--ink);font-weight:700}
+.doneby{color:var(--g);overflow:hidden;text-overflow:ellipsis}
 .time{font-size:13px;color:var(--m);white-space:nowrap;min-width:88px}
-.time .tz{font-size:12px;color:var(--o)}
-#map{height:270px;border-radius:12px;background:var(--o3)}
-.stats{display:flex;gap:10px;margin-top:10px}.stat{flex:1;background:var(--o3);border-radius:10px;padding:8px;text-align:center;font-size:12px}.stat b{display:block;font-size:22px;color:var(--o)}
-.tl{display:flex;position:relative;margin-top:24px;overflow-x:auto;padding-bottom:4px}
-.tl:before{content:"";position:absolute;top:7px;left:0;right:0;height:3px;background:var(--o2)}
-.tl .bar{position:absolute;top:7px;left:0;height:3px;background:var(--o)}
+.time .tz{font-size:12px;color:var(--v)}
+#map{height:270px;border-radius:14px;background:var(--v2);border:1.5px solid var(--ink)}
+.stats{display:flex;gap:10px;margin-top:10px}.stat{flex:1;background:var(--v2);border-radius:12px;padding:8px;text-align:center;font-size:12px}.stat b{display:block;font-size:24px;color:var(--v);font-weight:800}
+.stats .stat:nth-child(2){background:var(--y2)}.stats .stat:nth-child(2) b{color:var(--ot)}.stats .stat:nth-child(3){background:var(--g2)}.stats .stat:nth-child(3) b{color:var(--g)}
+.tl{display:flex;position:relative;margin-top:24px;overflow-x:auto;padding:4px 4px 6px}
+.tl:before{content:"";position:absolute;top:12px;left:0;right:0;height:4px;border-radius:4px;background:var(--soft)}
+.tl .bar{position:absolute;top:12px;left:0;height:4px;border-radius:4px;background:linear-gradient(90deg,var(--o),var(--pk))}
 .step{flex:1;min-width:92px;position:relative;padding-right:10px;font-size:12px}
-.step .dot{width:17px;height:17px;border-radius:50%;background:#fff;border:3px solid var(--o2);position:relative;z-index:1}
-.step.done .dot{background:var(--o);border-color:var(--o)}.step.now .dot{border-color:var(--o);box-shadow:0 0 0 5px var(--o2)}
+.step .dot{width:19px;height:19px;border-radius:50%;background:#fff;border:2px solid var(--soft);position:relative;z-index:1}
+.step.done .dot{background:var(--o);border-color:var(--ink)}.step.now .dot{background:var(--y);border-color:var(--ink);box-shadow:0 0 0 5px var(--y2)}
 .step .d{color:var(--m);margin:8px 0 2px}.step b{display:block;font-size:13px}
-.av{width:44px;height:44px;border-radius:50%;border:2.5px solid var(--o);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--o);flex-shrink:0;background:#fff;overflow:hidden}
+.av{width:44px;height:44px;border-radius:50%;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--ink);flex-shrink:0;background:var(--y);overflow:hidden}
+.cards>:nth-child(4n+2) .av,.row:nth-child(4n+2) .av{background:var(--pk)}.cards>:nth-child(4n+3) .av,.row:nth-child(4n+3) .av{background:var(--mint)}.cards>:nth-child(4n+4) .av,.row:nth-child(4n+4) .av{background:var(--v2)}
 .av img{width:100%;height:100%;object-fit:cover}
 .person{display:flex;gap:12px;align-items:center}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
-.mc{background:#fff;border:1.5px solid var(--line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column}
-.mc .ph{height:160px;background:var(--o3);display:flex;align-items:center;justify-content:center;font-size:52px;font-weight:800;color:var(--o)}
+.mc{background:#fff;border:2px solid var(--ink);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--sh)}
+.mc .ph{height:160px;background:var(--v2);display:flex;align-items:center;justify-content:center;font-size:52px;font-weight:800;color:var(--v);border-bottom:2px solid var(--ink)}
+.mc:nth-child(3n+2) .ph{background:var(--y2);color:var(--ot)}.mc:nth-child(3n+3) .ph{background:var(--g2);color:var(--g)}
 .mc .ph img{width:100%;height:100%;object-fit:cover}
 .mc .bd{padding:14px 16px;flex:1;display:flex;flex-direction:column;gap:6px}.mc h3{margin:0;font-size:17px}
 .mc .ft{margin-top:auto;padding-top:8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .partners{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-.pl{height:76px;border:1.5px solid var(--o2);border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;font-weight:600;font-size:13px;color:#555;background:#fff;text-decoration:none}
+.pl{height:76px;border:1.5px solid var(--soft);border-radius:14px;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;font-weight:600;font-size:13px;color:var(--m);background:#fff;text-decoration:none}
+a.pl:hover{border-color:var(--ink)}
 .pl img{max-height:48px;max-width:100%;object-fit:contain}
-input.search{width:100%;padding:10px 14px;border:1.5px solid var(--line);border-radius:10px;font:inherit;font-size:15px;margin-bottom:12px}
+input.search{width:100%;padding:10px 14px;border:2px solid var(--ink);border-radius:12px;font:inherit;font-size:15px;margin-bottom:12px;background:#fff}
 table{width:100%;border-collapse:collapse;font-size:14px}
-th{text-align:left;color:var(--m);font-weight:600;font-size:12px;padding:6px}
-td{padding:9px 6px;border-top:1px solid var(--o2);vertical-align:top}
+th{text-align:left;color:var(--m);font-weight:700;font-size:12px;padding:6px;text-transform:uppercase;letter-spacing:.04em}
+td{padding:9px 6px;border-top:1.5px dashed var(--soft);vertical-align:top}
 .wrapx{overflow-x:auto}
-.st{display:inline-block;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:600;white-space:nowrap}
-.st.Confirmed{background:#DFF3EA;color:var(--g)}.st.Pending{background:var(--o2);color:#b44c0f}.st.Not.started,.st.Not{background:#eee;color:#777}
-.att{display:inline-block;width:14px;height:14px;border-radius:4px;background:var(--o2);margin-right:3px}.att.y{background:var(--o)}
-.day h3{margin:18px 0 6px;font-size:16px}
+.st{display:inline-block;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700;white-space:nowrap;background:var(--v2);color:var(--ink)}
+.st.Confirmed{background:var(--g2);color:var(--g)}.st.Pending{background:var(--y2);color:#7A4300}.st.Not.started,.st.Not{background:#EEEBF5;color:var(--m)}
+.att{display:inline-block;width:14px;height:14px;border-radius:4px;background:var(--soft);margin-right:3px}.att.y{background:var(--mint);box-shadow:inset 0 0 0 1.5px var(--ink)}.att.n{background:#fff;box-shadow:inset 0 0 0 1.5px var(--red)}
+.day h3{margin:20px 0 6px;font-size:16px;display:inline-block;background:var(--y2);border-radius:8px;padding:2px 10px}
 .empty{color:var(--m);font-size:14px;padding:6px 0}
 .mm .why{font-size:13px;color:var(--g);margin-top:4px}
-.loading{min-height:100vh;display:grid;place-items:center;color:var(--m)}
+.loading{min-height:100vh;display:grid;place-items:center;color:var(--m);text-align:center;padding:24px}
 
-.pp{cursor:pointer;display:flex;flex-direction:column;gap:6px;text-align:left;font:inherit;color:inherit;border:1.5px solid var(--line);background:#fff;border-radius:16px;padding:0;overflow:hidden}
-.pp:hover{border-color:var(--o)}
-.pp .img{height:120px;background:var(--o3) center/cover no-repeat}
+.pp{cursor:pointer;display:flex;flex-direction:column;gap:6px;text-align:left;font:inherit;color:inherit;border:2px solid var(--ink);background:#fff;border-radius:18px;padding:0;overflow:hidden;transition:transform .08s,box-shadow .08s}
+.pp:hover{transform:translate(-2px,-2px);box-shadow:var(--sh)}
+.pp .img{height:120px;background:var(--pk2);border-bottom:2px solid var(--ink)}
+.cards>.pp:nth-child(3n+2) .img{background:var(--y2)}.cards>.pp:nth-child(3n+3) .img{background:var(--g2)}
+.pp .img img{width:100%;height:100%;object-fit:cover;display:block}
 .pp .bd{padding:12px 14px 14px}
 .pp p{margin:4px 0 0;font-size:13px;color:var(--m);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .ppbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
-.ppbar select,.ppbar textarea{font:inherit;font-size:14px;padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--t)}
+.ppbar select,.ppbar textarea{font:inherit;font-size:14px;padding:9px 12px;border:2px solid var(--ink);border-radius:12px;background:#fff;color:var(--t)}
 .ppbar textarea{flex:1 1 100%;min-height:64px;resize:vertical}
-dialog.ppd{max-width:760px;width:calc(100% - 32px);border:0;border-radius:20px;padding:26px;background:var(--bg);color:var(--t)}
-dialog.ppd::backdrop{background:rgba(0,0,0,.45)}
+dialog.ppd{max-width:760px;width:calc(100% - 32px);border:2px solid var(--ink);border-radius:22px;padding:26px;background:var(--bg);color:var(--t);box-shadow:8px 8px 0 var(--v)}
+dialog.ppd::backdrop{background:rgba(27,16,53,.55)}
 dialog.ppd h3{margin:16px 0 4px;font-size:15px}
 @media(max-width:1000px){
  .app{flex-direction:column}
- nav{width:auto;height:auto;position:sticky;top:0;z-index:1000;flex-direction:row;flex-wrap:wrap;align-items:center;gap:4px;padding:10px}
- nav .who{display:none}nav .logo{padding:0 8px 0 4px}
- nav button{width:auto;padding:8px 10px;font-size:14px}nav .out{margin:0 0 0 auto}
+ nav{width:auto;height:auto;position:sticky;top:0;z-index:1000;flex-direction:row;align-items:center;gap:4px;padding:8px 10px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+ nav::-webkit-scrollbar{display:none}
+ nav .who{display:none}nav .logo{padding:0 8px 0 4px;font-size:18px}
+ nav>*{flex-shrink:0;white-space:nowrap}
+ nav button{width:auto;padding:8px 10px;font-size:14px}nav .out{margin:0 0 0 auto}nav .out+.out{margin-left:0}
  main{padding:18px}
- .grid{grid-template-columns:1fr}.s2,.s3{grid-column:auto}.r2{grid-row:auto}
+ .grid{grid-template-columns:1fr;gap:16px}.s2,.s3{grid-column:auto}.r2{grid-row:auto}
  .partners{grid-template-columns:repeat(2,1fr)}
  .top h1{font-size:34px}
+ .card,.mc{box-shadow:3px 3px 0 var(--ink)}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style></head>
@@ -159,6 +181,21 @@ const dayShift = d => { const a = new Date(d).toLocaleDateString('en-CA', { time
 const timeCell = d => d ? `${h(ist(d))} IST${sameZone() ? '' : `<br><span class="tz">${h(local(d))} ${h(zoneCity())}${dayShift(d)}</span>`}` : '';
 const tzNote = () => sameZone() ? 'Times are in India Standard Time.' : `Times are in India Standard Time, with ${h(zoneCity())} time underneath.`;
 const timeLabel = a => a.start ? `${ist(a.start)} IST${sameZone() ? '' : ` · ${local(a.start)} your time`}` : '';
+// The session that is on now, or the next one still to come today.
+function nowNext(sessions) {
+  const now = Date.now(), t = d => new Date(d).getTime();
+  const on = sessions.find(a => a.start && t(a.start) <= now && now < (a.end ? t(a.end) : t(a.start) + 36e5));
+  const a = on || sessions.find(x => x.start && t(x.start) > now);
+  return a ? { a, on: !!on } : null;
+}
+const joinBtn = a => a.zoom ? ` <a class="btn" href="${safeUrl(a.zoom)}" target="_blank" rel="noopener">Join on Zoom</a>` : '';
+// Kept current while the tab stays open: redrawn every minute and when the tab is shown again.
+let liveSessions = null;
+const nowNextHTML = sessions => { liveSessions = sessions; return `<div id="nownext">${nowNextInner(sessions)}</div>`; };
+const refreshNowNext = () => { const el = $('#nownext'); if (el && liveSessions) el.innerHTML = nowNextInner(liveSessions); };
+setInterval(refreshNowNext, 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshNowNext(); });
+const nowNextInner = sessions => { const n = nowNext(sessions); return n ? `<p>${n.on ? 'On now' : 'Next'}: <strong>${h(n.a.session)}</strong>${n.on ? (n.a.end ? `, until ${h(ist(n.a.end))} IST` : '') : `, at ${h(timeLabel(n.a))}`}.</p>${n.a.zoom ? `<p>${joinBtn(n.a)}</p>` : ''}` : ''; };
 const store = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
 
 // ---------- sign-in ----------
@@ -169,13 +206,18 @@ $('#signinForm').addEventListener('submit', async e => {
   btn.disabled = true; btn.textContent = 'Sending…';
   try { await fetch('/api/request-link', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: $('#email').value }) }); } catch {}
   msg.hidden = false;
-  msg.textContent = 'If that address is registered for SECIP 2027, a sign-in link is on its way. It works for 15 minutes, so check your inbox (and spam) now.';
+  msg.textContent = 'If that address is registered for SECIP 2027, a sign-in link is on its way. It works for 15 minutes, so check your inbox (and spam) now. If you ask more than once, use the newest email. You can ask for two links every 30 minutes.';
   btn.disabled = false; btn.textContent = 'Email me a sign-in link';
 });
 
 async function boot() {
   let r;
-  try { r = await fetch('/api/me', { credentials: 'same-origin' }); } catch { r = null; }
+  // If the server is busy (everyone arriving at once), wait a moment and try again before giving up.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt) await new Promise(ok => setTimeout(ok, 2500));
+    try { r = await fetch('/api/me' + (store.get('view') === 'student' ? '?view=student' : ''), { credentials: 'same-origin' }); } catch { r = null; }
+    if (r && r.status < 500) break;
+  }
   $('#loading').hidden = true;
   if (!r || r.status === 401) {
     $('#signin').hidden = false;
@@ -183,7 +225,7 @@ async function boot() {
     history.replaceState(null, '', '/');
     return;
   }
-  if (!r.ok) { document.body.innerHTML = '<div class="loading">The dashboard could not load its data. Refresh in a minute, or contact the SECIP team if it keeps happening.</div>'; return; }
+  if (!r.ok) { document.body.innerHTML = '<div class="loading">The dashboard could not load its data. Refresh in a minute, or contact the SECIP team if it keeps happening.<br><br><button class="btn" type="button" onclick="location.reload()">Try again</button></div>'; return; }
   const D = await r.json();
   $('#app').hidden = false;
   D.role === 'sc' ? committeeApp(D) : studentApp(D);
@@ -195,7 +237,8 @@ function calendar(agenda) {
   const t = todayISO();
   let idx = dates.indexOf(t);
   const before = dates.length && t < dates[0], after = dates.length && t > dates[dates.length - 1];
-  if (idx < 0 && !before && !after) idx = dates.findIndex(d => d > t); // a weekend inside the programme: show next day
+  const gap = idx < 0 && !before && !after; // a weekend inside the programme: show the next day, and say so
+  if (gap) idx = dates.findIndex(d => d > t);
   const cur = before ? 0 : after ? dates.length - 1 : Math.max(idx, 0);
   const phaseOf = d => {
     const counts = {};
@@ -204,13 +247,13 @@ function calendar(agenda) {
   };
   const headline = d => agenda.filter(a => a.date === d && !/opening brief|break|reflection/i.test(a.session))[0]?.session || '';
   const daysToGo = before ? Math.ceil((new Date(dates[0] + 'T00:00') - new Date(t + 'T00:00')) / 864e5) : 0;
-  return { dates, cur, before, after, phaseOf, headline, daysToGo, today: dates[cur], sessions: d => agenda.filter(a => a.date === d) };
+  return { dates, cur, before, after, gap, live: !before && !after && !gap, phaseOf, headline, daysToGo, today: dates[cur], sessions: d => agenda.filter(a => a.date === d) };
 }
 
 function timeline(C) {
   if (!C.dates.length) return '<p class="empty">The agenda will appear here once it is added in Airtable.</p>';
   const pos = C.before ? -1 : C.after ? C.dates.length : C.cur;
-  const w = pos < 0 ? 0 : Math.min(100, pos / (C.dates.length - 1) * 100);
+  const w = pos < 0 ? 0 : Math.min(100, pos / Math.max(C.dates.length - 1, 1) * 100);
   return `<div class="tl"><div class="bar" style="width:${w}%"></div>${C.dates.map((d, i) =>
     `<div class="step ${i < pos ? 'done' : i === pos ? 'now' : ''}"><div class="dot"></div><div class="d">Day ${i + 1} · ${fmtDate(d)}</div><b>${h(C.phaseOf(d))}</b>${h(C.headline(d))}</div>`).join('')}</div>`;
 }
@@ -253,37 +296,54 @@ function agendaHTML(C, field) {
   return C.dates.map((d, i) => `<div class="day"><h3>Day ${i + 1}, ${fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long' })}</h3>${C.sessions(d).map(a =>
     `<div class="row"><span class="time">${timeCell(a.start)}</span><div><b>${h(a.session)}</b>${a.facilitator ? `<div class="sub">${h(a.facilitator)}${a.format ? ', ' + h(a.format.toLowerCase()) : ''}</div>` : ''}
     ${lines(a[field]).map(t => `<div class="sub">• ${h(t)}</div>`).join('')}
-    ${[a.slides && `<a href="${safeUrl(a.slides)}" target="_blank" rel="noopener">Slides</a>`, a.recording && `<a href="${safeUrl(a.recording)}" target="_blank" rel="noopener">Recording</a>`].filter(Boolean).join(' · ')}</div></div>`).join('')}</div>`).join('');
+    ${[a.zoom && `<a href="${safeUrl(a.zoom)}" target="_blank" rel="noopener">Join on Zoom</a>`, a.slides && `<a href="${safeUrl(a.slides)}" target="_blank" rel="noopener">Slides</a>`, a.recording && `<a href="${safeUrl(a.recording)}" target="_blank" rel="noopener">Recording</a>`].filter(Boolean).join(' · ')}</div></div>`).join('')}</div>`).join('');
 }
 
+// The map libraries are only fetched when a page with a map is opened, so sign-in stays light.
+const MAP_LIBS = [
+  ['https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H'],
+  ['https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', 'sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH'],
+  ['https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js', 'sha384-Ukv1p/xTma6P4/2bY5KzWBw+ydSpXmhCMtyciIQVDJ1RmOxtCYNMF1uXT9T63H67'],
+];
+let mapLibs, worldAtlas;
+const loadMapLibs = () => mapLibs || (mapLibs = Promise.all(MAP_LIBS.map(([url, integrity]) => new Promise((ok, no) => {
+  const css = url.endsWith('.css'), el = document.createElement(css ? 'link' : 'script');
+  if (css) { el.rel = 'stylesheet'; el.href = url; } else el.src = url;
+  el.integrity = integrity; el.crossOrigin = 'anonymous'; el.onload = ok; el.onerror = no;
+  document.head.appendChild(el);
+}))).catch(e => { mapLibs = null; throw e; }));
 function drawMap(D, el) {
+  loadMapLibs().then(() => { if (el.isConnected) buildMap(D, el); }).catch(() => { if (el.isConnected) el.innerHTML = '<p class="empty" style="padding:14px">The map could not load. Refresh the page to try again.</p>'; });
+}
+function buildMap(D, el) {
   const byUni = {};
   D.students.forEach(s => { (byUni[s.uni] = byUni[s.uni] || []).push(s); });
   const unis = D.universities.filter(u => typeof u.lat === 'number' && typeof u.lng === 'number');
   const map = L.map(el, { scrollWheelZoom: false, attributionControl: false, zoomSnap: .5 }).setView([8, 115], 2.5);
   const pins = L.featureGroup().addTo(map);
-  fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(r => r.json()).then(w => {
-    L.geoJSON(topojson.feature(w, w.objects.countries), { style: { color: '#F6C9A8', weight: .8, fillColor: '#fff', fillOpacity: 1 }, interactive: false }).addTo(map);
+  (worldAtlas || (worldAtlas = fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json').then(r => r.json()).catch(e => { worldAtlas = null; throw e; }))).then(w => {
+    L.geoJSON(topojson.feature(w, w.objects.countries), { style: { color: '#B9AEDD', weight: .8, fillColor: '#fff', fillOpacity: 1 }, interactive: false }).addTo(map);
     pins.eachLayer(l => l.bringToFront());
   }).catch(() => {});
   unis.forEach(u => { const n = (byUni[u.name] || []).length;
-    L.circleMarker([u.lat, u.lng], { radius: 7 + Math.min(n, 30) * .8, color: '#F26B1D', fillColor: '#F26B1D', fillOpacity: .6, weight: 2 })
+    L.circleMarker([u.lat, u.lng], { radius: 7 + Math.min(n, 30) * .8, color: '#1B1035', fillColor: '#FF6A13', fillOpacity: .85, weight: 2 })
       .addTo(pins).bindPopup(`<b>${h(u.name)}</b><br>${n} student${n === 1 ? '' : 's'}`); });
   setTimeout(() => map.invalidateSize(), 60);
-  return map;
 }
 const mapStats = D => { const c = new Set(D.universities.map(u => u.country).filter(Boolean)); return `<div class="stats"><div class="stat"><b>${D.students.length}</b>Students</div><div class="stat"><b>${c.size}</b>Countries</div><div class="stat"><b>${D.universities.length}</b>Universities</div></div>`; };
 
 // ---------- navigation ----------
+// Committee members can look at the student dashboard and come back. The choice is remembered on this device.
+document.addEventListener('click', e => { const a = e.target.closest('[data-view]'); if (!a) return; e.preventDefault(); store.set('view', a.dataset.view); history.replaceState(null, '', '/'); location.reload(); });
 function shell(D, pages, title) {
-  $('#nav').innerHTML = `<div class="logo">SECIP 2027</div><div class="who">${h(title)}</div>${pages.map(p => `<button type="button" data-p="${p.id}">${h(p.label)}</button>`).join('')}<a class="out" href="/api/logout">Sign out</a>`;
-  let map;
+  $('#nav').innerHTML = `<div class="logo">SECIP 2027</div><div class="who">${h(title)}</div>${pages.map(p => `<button type="button" data-p="${p.id}">${h(p.label)}</button>`).join('')}${D.canSwitch ? `<a class="out swap" href="#" data-view="${D.role === 'sc' ? 'student' : 'sc'}">${D.role === 'sc' ? 'See the student view' : 'Back to committee view'}</a>` : ''}<a class="out" href="/api/logout">Sign out</a>`;
   const show = id => {
     const p = pages.find(x => x.id === id) || pages[0];
     $('#nav').querySelectorAll('button').forEach(b => b.setAttribute('aria-current', b.dataset.p === p.id ? 'page' : 'false'));
     $('#main').innerHTML = p.render();
-    if (p.after) map = p.after() || map;
+    if (p.after) p.after();
     window.scrollTo(0, 0);
+    $('#nav').querySelector('[aria-current="page"]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
     if (location.hash !== '#' + p.id) history.replaceState(null, '', '#' + p.id);
   };
   $('#nav').onclick = e => { const b = e.target.closest('button[data-p]'); if (b) show(b.dataset.p); };
@@ -305,7 +365,7 @@ function rankPast(P, idea, sdgs) {
       return { p, score: shared * 2 + sdgHit * 3 + (q.size ? 0 : Math.random() * .01), shared, sdgHit }; })
     .filter(x => x.score > 0.5).sort((a, b) => b.score - a.score);
 }
-const pastCard = p => `<button type="button" class="pp" data-pp="${h(p.id)}"><div class="img" style="${p.image ? `background-image:url('${safeUrl(p.image)}')` : ''}"></div><div class="bd"><b>${h(p.name)}</b><div class="sub">${h(p.cohort)}${p.sdg ? ' · ' + h(p.sdg.split(',')[0]) : ''}</div><p>${h(p.problem || p.solution)}</p></div></button>`;
+const pastCard = p => `<button type="button" class="pp" data-pp="${h(p.id)}"><div class="img">${p.image ? `<img src="${safeUrl(p.image)}" alt="" loading="lazy" decoding="async">` : ''}</div><div class="bd"><b>${h(p.name)}</b><div class="sub">${h(p.cohort)}${p.sdg ? ' · ' + h(p.sdg.split(',')[0]) : ''}</div><p>${h(p.problem || p.solution)}</p></div></button>`;
 function openPast(p) {
   let d = $('#ppd'); if (!d) { d = document.createElement('dialog'); d.id = 'ppd'; d.className = 'ppd'; document.body.appendChild(d); }
   const fl = L => L.map(a => `<a class="lnk" href="${safeUrl(a.url)}" target="_blank" rel="noopener"><span>${h(a.name)}</span><span></span></a>`).join('');
@@ -359,7 +419,7 @@ function studentApp(D) {
   const me = D.me, C = calendar(D.agenda);
   const mates = D.students.filter(s => s.team && s.team === me.team && s.name !== me.name);
   const dayLine = C.before ? `Starts ${fmtDate(C.dates[0], { weekday: 'short', day: 'numeric', month: 'short' })} · ${C.daysToGo} day${C.daysToGo === 1 ? '' : 's'} to go` : C.after ? 'Programme complete' : C.dates.length ? `Day ${C.cur + 1} of ${C.dates.length} · ${C.phaseOf(C.today)}` : '';
-  const header = `<div class="top"><div><h1>${h(me.name)}</h1><div class="meta">${h(me.uni)}${me.team ? `<span class="pill">${h(me.team)}</span>` : ''}</div></div>${dayLine ? `<div class="count"><b>${C.before ? C.daysToGo : C.after ? '✓' : C.cur + 1}</b>${C.before ? 'days to go' : C.after ? 'complete' : 'day'}</div>` : ''}</div>`;
+  const header = `${D.canSwitch ? `<div class="note">You are looking at the student dashboard as a committee member.${D.preview ? ' The profile shown is a stand-in, because you are not enrolled as a student.' : ''} <a href="#" data-view="sc">Back to committee view</a></div>` : ''}<div class="top"><div><h1>${h(me.name)}</h1><div class="meta">${h(me.uni)}${me.team ? `<span class="pill">${h(me.team)}</span>` : ''}</div></div>${dayLine ? `<div class="count"><b>${C.before ? C.daysToGo : C.after ? '✓' : C.cur + 1}</b>${C.before ? 'days to go' : C.after ? 'complete' : C.gap ? 'next programme day' : 'day'}</div>` : ''}</div>`;
   const todaySessions = C.today ? C.sessions(C.today) : [];
   const todos = todaySessions.flatMap(a => lines(a.studentTodo));
   const key = (i, t) => `todo:${C.today}:${i}:${t.slice(0, 30)}`;
@@ -378,30 +438,30 @@ function studentApp(D) {
   const linkOut = (href, label) => href ? ` <a href="${href.startsWith('#') ? href : safeUrl(href)}"${href.startsWith('#') ? '' : ' target="_blank" rel="noopener"'}>${h(label)}</a>` : '';
   const todoCard = C.before
     ? `<div class="card"><h2>Before Day 1</h2>${pre.map((x, i) => `<label class="row"><input type="checkbox" data-k="${preKey(i)}" ${store.get(preKey(i)) === '1' ? 'checked' : ''}><span>${h(x.t)}${linkOut(x.href, x.label)}</span></label>`).join('')}</div>`
-    : `<div class="card"><h2>Today’s to-dos</h2>${todos.length ? todos.map((t, i) => `<label class="row"><input type="checkbox" data-k="${h(key(i, t))}" ${store.get(key(i, t)) === '1' ? 'checked' : ''}><span>${h(t)}</span></label>`).join('') : '<p class="empty">Nothing to do yet. Enjoy the session.</p>'}</div>`;
+    : `<div class="card"><h2>${C.gap ? `To-dos for Day ${C.cur + 1}` : 'Today’s to-dos'}</h2>${todos.length ? todos.map((t, i) => `<label class="row"><input type="checkbox" data-k="${h(key(i, t))}" ${store.get(key(i, t)) === '1' ? 'checked' : ''}><span>${h(t)}</span></label>`).join('') : '<p class="empty">Nothing to do yet. Enjoy the session.</p>'}</div>`;
   const contacts = (D.contacts || []).slice().sort((a, b) => (b.uni === me.uni) - (a.uni === me.uni) || b.rep - a.rep || a.uni.localeCompare(b.uni) || a.name.localeCompare(b.name));
 
   shell(D, [
     { id: 'home', label: 'Home', render: () => `${header}<div class="grid">
       <div class="card brief"><h2>Morning brief</h2>
-        ${C.dates.length ? `<p>${C.before ? `<strong>Here’s a preview of Day 1.</strong> ` : ''}Today: <strong>${h(C.headline(C.today) || 'Programme day')}</strong>.</p>
-        ${todaySessions[0] ? `<p>First session at ${h(timeLabel(todaySessions[0]))}.</p>` : ''}
+        ${C.dates.length ? `<p>${C.before ? `<strong>Here’s a preview of Day 1.</strong> Day 1: ` : C.gap ? `<strong>No sessions today.</strong> Day ${C.cur + 1} is on ${fmtDate(C.today, { weekday: 'long', day: 'numeric', month: 'short' })}: ` : C.after ? 'Final day: ' : 'Today: '}<strong>${h(C.headline(C.today) || 'Programme day')}</strong>.</p>
+        ${C.live ? nowNextHTML(todaySessions) : !C.after && todaySessions[0] ? `<p>First session at ${h(timeLabel(todaySessions[0]))}.</p>` : ''}
         ${mates.length ? `<p>Your ${h(me.team)} teammates are joining from ${h([...new Set(mates.map(m => m.country).filter(Boolean))].join(', ') || 'across the region')}.</p>` : ''}
         ${C.dates[C.cur + 1] ? `<p>Up next: Day ${C.cur + 2}, ${h(C.headline(C.dates[C.cur + 1]))}.</p>` : ''}` : '<p class="empty">Your brief will appear once the agenda is published.</p>'}
       </div>
       ${todoCard}
       <div class="card r2"><h2>Important links</h2>${linksHTML(D.links)}<p class="sub" style="margin-top:10px">Questions? <a href="#contacts">Contact your Steering Committee representative</a>.</p></div>
-      <div class="card s2"><h2>Community map</h2><div id="map"></div>${mapStats(D)}</div>
-      <div class="card s3"><h2>Programme timeline</h2>${timeline(C)}</div>
-      <div class="card s2"><h2>Meet the mentors</h2>${D.mentors.slice(0, 4).map(m => `<div class="row"><div class="person"><div class="av">${m.photo ? `<img src="${safeUrl(m.photo)}" alt="">` : h(ini(m.name))}</div><div><b>${h(m.name)}</b><div class="sub">${h(m.expertise.slice(0, 2).join(', '))}</div></div></div></div>`).join('') || '<p class="empty">Mentors will be announced soon.</p>'}
+      <div class="card s2"><h2>Meet the mentors</h2>${D.mentors.slice(0, 4).map(m => `<div class="row"><div class="person"><div class="av">${m.photo ? `<img src="${safeUrl(m.photo)}" alt="" loading="lazy">` : h(ini(m.name))}</div><div><b>${h(m.name)}</b><div class="sub">${h(m.expertise.slice(0, 2).join(', '))}</div></div></div></div>`).join('') || '<p class="empty">Mentors will be announced soon.</p>'}
         ${D.mentors.length ? `<button class="btn" type="button" style="margin-top:10px" onclick="location.hash='mentors'">See all mentors</button>` : ''}</div>
-      <div class="card"><h2>Your progress</h2><div class="stat" style="margin-bottom:10px"><b>${me.att.filter(Boolean).length}/${C.dates.length || 10}</b>Days attended</div><div class="stat"><b>${C.before ? 0 : C.after ? 100 : Math.round(C.cur / Math.max(C.dates.length, 1) * 100)}%</b>Programme complete</div></div>
-      <div class="card s3"><h2>Past projects on your goals</h2><p class="sub" style="margin:-4px 0 12px">What earlier SECIP teams built for the goals you care about.</p><div class="cards" id="pphome"><p class="empty">Loading…</p></div>
-        <button class="btn" type="button" style="margin-top:12px" onclick="location.hash='past'">Explore all past projects</button></div>
+      <div class="card s3"><h2>Programme timeline</h2>${timeline(C)}</div>
       <div class="card s3"><h2>People to meet</h2><p class="sub" style="margin:-4px 0 12px">Students outside your team who care about the same goals as you.</p>
         ${MM.length ? `<div class="cards">${MM.slice(0, 3).map(x => matchCard(x, me)).join('')}</div><button class="btn" type="button" style="margin-top:12px" onclick="location.hash='matchmaker'">See all ${MM.length} matches</button>` : matchEmpty(me)}</div>
+      <div class="card s3"><h2>Past projects on your goals</h2><p class="sub" style="margin:-4px 0 12px">What earlier SECIP teams built for the goals you care about.</p><div class="cards" id="pphome"><p class="empty">Loading…</p></div>
+        <button class="btn" type="button" style="margin-top:12px" onclick="location.hash='past'">Explore all past projects</button></div>
+      <div class="card s2"><h2>Community map</h2><div id="map"></div>${mapStats(D)}</div>
+      <div class="card"><h2>Your progress</h2><div class="stat" style="margin-bottom:10px"><b>${me.att.filter(Boolean).length}/${C.dates.length || 10}</b>Days attended</div><div class="stat"><b>${C.before ? 0 : C.after ? 100 : Math.round(C.cur / Math.max(C.dates.length, 1) * 100)}%</b>Programme complete</div></div>
       <div class="card s3"><h2>Programme partners</h2>${partnersHTML(D.partners)}</div></div>`,
-      after: () => { document.querySelectorAll('[data-k]').forEach(c => c.onchange = () => store.set(c.dataset.k, c.checked ? '1' : '0')); loadPast().then(P => { const el = $('#pphome'); if (!el) return; const L = rankPast(P, '', sdgOf(me.sdg)).slice(0, 3); el.innerHTML = L.length ? L.map(x => pastCard(x.p)).join('') : '<p class="empty">Add your SDG interests in the team survey to see projects on your goals.</p>'; wirePastClicks(el, P); }); return drawMap(D, $('#map')); } },
+      after: () => { document.querySelectorAll('[data-k]').forEach(c => c.onchange = () => store.set(c.dataset.k, c.checked ? '1' : '0')); loadPast().then(P => { const el = $('#pphome'); if (!el) return; const L = rankPast(P, '', sdgOf(me.sdg)).slice(0, 3); el.innerHTML = L.length ? L.map(x => pastCard(x.p)).join('') : '<p class="empty">Add your SDG interests in the team survey to see projects on your goals.</p>'; wirePastClicks(el, P); }); drawMap(D, $('#map')); } },
     { id: 'profile', label: 'My profile', render: () => `${header}<div class="grid">
       <div class="card"><h2>About me</h2><div class="person"><div class="av">${h(ini(me.name))}</div><div><b>${h(me.name)}</b><div class="sub">${h([me.degree, me.year].filter(Boolean).join(', '))}</div><div class="sub">${h([me.city, me.country].filter(Boolean).join(', '))}</div></div></div>
         ${me.sdg.length ? `<p class="sub" style="margin:14px 0 4px">Goals I care about</p>${me.sdg.map(t => `<span class="tag">${h(t)}</span>`).join('')}` : ''}
@@ -436,45 +496,79 @@ function studentApp(D) {
 function committeeApp(D) {
   const me = D.me, C = calendar(D.agenda), today = todayISO();
   const tkey = t => 'sc:' + t.id;
-  const done = t => store.get(tkey(t)) === '1';
-  const next = D.tasks.find(t => t.due && t.due >= today && !done(t)) || D.tasks.find(t => !done(t));
+  // A task is done for your university when the university is in the task's "Done by" list in Airtable,
+  // so everyone at your university, on any device, sees the same ticks. A tick that could not be
+  // shared (older ticks, or a read-only Airtable token) is kept on this device.
+  const orgs = [...new Set(D.committee.map(c => c.uni.trim()).filter(Boolean))];
+  const local = t => store.get(tkey(t)) === '1';
+  const done = t => (!!me.uni && t.doneBy.includes(me.uni)) || local(t);
+  const nextTask = () => D.tasks.find(t => t.due && t.due >= today && !done(t)) || D.tasks.find(t => !done(t));
+  let tickNote = '';
+  const checklist = () => `<div class="card s2 r2" id="checklist"><h2>Lead-up checklist</h2>${D.tasks.length ? D.tasks.map(t => { const dd = t.due ? (new Date(t.due + 'T00:00') - new Date(today + 'T00:00')) / 864e5 : null;
+        return `<label class="row"><input type="checkbox" data-t="${h(t.id)}" ${done(t) ? 'checked' : ''}><div><b>${h(t.task)}</b>${t.notes ? `<div class="sub">${h(t.notes)}</div>` : ''}
+          ${t.doneBy.length ? `<div class="sub doneby" title="${h(t.doneBy.join(', '))}">Done by ${t.doneBy.length} of ${orgs.length}: ${h(t.doneBy.join(', '))}</div>` : ''}</div>${t.due ? `<span class="when ${dd !== null && dd >= 0 && dd < 10 && !done(t) ? 'soon' : ''}">${fmtDate(t.due)}</span>` : ''}</label>`; }).join('') : '<p class="empty">No tasks yet.</p>'}
+        <p class="sub" style="margin-top:10px" role="status">${tickNote || (me.uni ? `Ticks are shared: they mark a task as done for ${h(me.uni)} and show for the whole committee.` : 'Ticks are saved on this device.')}</p></div>`;
+  const wireChecklist = () => document.querySelectorAll('#checklist [data-t]').forEach(c => c.onchange = async () => {
+    const t = D.tasks.find(x => x.id === c.dataset.t), want = c.checked; c.disabled = true;
+    let r = null; try { r = await fetch('/api/task', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: t.id, done: want }) }); } catch {}
+    if (r && r.ok) { t.doneBy = (await r.json()).doneBy || []; store.set(tkey(t), '0'); tickNote = ''; }
+    else if (r && r.status === 401) { location.reload(); return; }
+    else if (r && r.status < 500) { store.set(tkey(t), want ? '1' : '0'); tickNote = 'This tick is saved on this device only, because sharing ticks is not switched on yet.'; }
+    else tickNote = 'That tick could not be saved. Check your connection and try again.';
+    $('#checklist').outerHTML = checklist(); wireChecklist(); $('#brief').outerHTML = brief();
+  });
   const header = `<div class="top"><div><h1>Steering committee</h1><div class="meta">${h(me.name)}${me.uni ? ', ' + h(me.uni) : ''}${me.teams.length ? `<span class="pill">${h(me.teams.join(', '))}</span>` : ''}</div></div>
-    <div class="count"><b>${C.before ? C.daysToGo : C.after ? '✓' : C.cur + 1}</b>${C.before ? 'days to launch' : C.after ? 'complete' : 'programme day'}</div></div>`;
-  const scToday = C.before || C.after ? [] : C.sessions(C.today).filter(a => a.scTodo);
+    <div class="count"><b>${C.before ? C.daysToGo : C.after ? '✓' : C.cur + 1}</b>${C.before ? 'days to launch' : C.after ? 'complete' : C.gap ? 'next programme day' : 'programme day'}</div></div>`;
+  const scToday = C.live ? C.sessions(C.today).filter(a => a.scTodo) : [];
+  const brief = () => { const next = nextTask(); return `<div class="card brief" id="brief"><h2>This week</h2>
+        ${C.before ? `<p><strong>${C.daysToGo} day${C.daysToGo === 1 ? '' : 's'}</strong> until SECIP starts.</p>` : C.after ? '<p>The programme has finished. Thank you.</p>' : C.gap ? `<p><strong>No sessions today.</strong> Day ${C.cur + 1} is on ${fmtDate(C.today, { weekday: 'long', day: 'numeric', month: 'short' })}: ${h(C.headline(C.today))}.</p>` : `<p>Today is <strong>Day ${C.cur + 1}</strong>: ${h(C.headline(C.today))}.</p>`}
+        ${C.live ? nowNextHTML(C.sessions(C.today)) : ''}
+        ${next ? `<p>Next task: <strong>${h(next.task)}</strong>${next.due ? `, due ${fmtDate(next.due)}` : ''}.</p>` : ''}
+        <p>${me.uni ? h(me.uni) + ' has done ' : ''}${D.tasks.filter(done).length} of ${D.tasks.length} lead-up tasks${me.uni ? '' : ' done'}.</p>
+        ${scToday.length ? `<p>Your role today: ${scToday.map(a => `<br>• <b>${h(ist(a.start))}</b> ${h(lines(a.scTodo)[0])}`).join('')}</p>` : ''}</div>`; };
+  // Attendance is judged over programme days that are over (today is still in progress).
+  const elapsed = () => C.after ? C.dates.length : C.dates.filter(d => d < today).length;
+  const attended = (s, el) => s.att.slice(0, el).filter(Boolean).length, missed = (s, el) => el - attended(s, el);
   const g = mentorGallery(D, true);
   const conf = D.mentors.filter(m => m.confirmed).length;
 
   shell(D, [
     { id: 'home', label: 'Home', render: () => `${header}<div class="grid">
-      <div class="card brief"><h2>This week</h2>
-        ${C.before ? `<p><strong>${C.daysToGo} days</strong> until SECIP starts.</p>` : C.after ? '<p>The programme has finished. Thank you.</p>' : `<p>Today is <strong>Day ${C.cur + 1}</strong>: ${h(C.headline(C.today))}.</p>`}
-        ${next ? `<p>Next up: <strong>${h(next.task)}</strong>${next.due ? `, due ${fmtDate(next.due)}` : ''}.</p>` : ''}
-        <p>${D.tasks.filter(done).length} of ${D.tasks.length} lead-up tasks done.</p>
-        ${scToday.length ? `<p>Your role today: ${scToday.map(a => `<br>• <b>${h(ist(a.start))}</b> ${h(lines(a.scTodo)[0])}`).join('')}</p>` : ''}</div>
-      <div class="card s2 r2"><h2>Lead-up checklist</h2>${D.tasks.length ? D.tasks.map(t => { const dd = t.due ? (new Date(t.due + 'T00:00') - new Date(today + 'T00:00')) / 864e5 : null;
-        return `<label class="row"><input type="checkbox" data-t="${h(tkey(t))}" ${done(t) ? 'checked' : ''}><div><b>${h(t.task)}</b>${t.notes ? `<div class="sub">${h(t.notes)}</div>` : ''}</div>${t.due ? `<span class="when ${dd !== null && dd >= 0 && dd < 10 ? 'soon' : ''}">${fmtDate(t.due)}</span>` : ''}</label>`; }).join('') : '<p class="empty">No tasks yet.</p>'}
-        <p class="sub" style="margin-top:10px">Ticks are saved on this device.</p></div>
+      ${brief()}
+${checklist()}
       <div class="card"><h2>Committee guides</h2>${linksHTML(D.links.filter(l => l.sc))}</div>
       <div class="card"><h2>Important links</h2>${linksHTML(D.links.filter(l => !l.sc))}</div>
       <div class="card s3"><h2>Road to launch</h2>${(() => { const ms = D.tasks.filter(t => t.milestone && t.due); if (!ms.length) return '<p class="empty">Mark tasks as milestones in Airtable to show them here.</p>';
         const all = [...ms, ...(ms.some(m => m.due === C.dates[0]) ? [] : [{ task: 'Programme starts', due: C.dates[0] }])].filter(m => m.due).sort((a, b) => a.due < b.due ? -1 : 1); const pos = all.findIndex(m => m.due > today); const p = pos < 0 ? all.length : pos;
         return `<div class="tl"><div class="bar" style="width:${Math.max(0, (p - 1) / Math.max(all.length - 1, 1) * 100)}%"></div>${all.map((m, i) => `<div class="step ${i < p ? 'done' : i === p ? 'now' : ''}"><div class="dot"></div><div class="d">${fmtDate(m.due)}</div><b>${h(m.task)}</b></div>`).join('')}</div>`; })()}</div>
       <div class="card s3"><h2>Programme partners</h2>${partnersHTML(D.partners)}</div></div>`,
-      after: () => document.querySelectorAll('[data-t]').forEach(c => c.onchange = () => { store.set(c.dataset.t, c.checked ? '1' : '0'); location.reload(); }) },
-    { id: 'universities', label: 'University status', render: () => `${header}<div class="card"><h2>Participation by university</h2><div class="wrapx"><table><thead><tr><th>University</th><th>Committee contact</th><th>Participation</th><th>Student list</th><th>Mentor list</th></tr></thead><tbody>
-      ${D.universityStatus.map(u => `<tr><td><b>${h(u.name)}</b></td><td>${h(u.rep)}</td>${[u.participation, u.studentList, u.mentorList].map(s => `<td><span class="st ${h(s)}">${h(s)}</span></td>`).join('')}</tr>`).join('')}</tbody></table></div></div>
+      after: wireChecklist },
+    { id: 'universities', label: 'University status', render: () => `${header}<div class="card"><h2>Participation by university</h2><div class="wrapx"><table><thead><tr><th>University</th><th>Committee contact</th><th>Participation</th><th>Student list</th><th>Mentor list</th><th>Checklist</th></tr></thead><tbody>
+      ${D.universityStatus.map(u => `<tr><td><b>${h(u.name)}</b></td><td>${h(u.rep)}</td>${[u.participation, u.studentList, u.mentorList].map(s => `<td><span class="st ${h(s)}">${h(s)}</span></td>`).join('')}<td>${D.tasks.filter(t => t.doneBy.includes(u.name)).length} of ${D.tasks.length}</td></tr>`).join('')}</tbody></table></div></div>
       <div class="card" style="margin-top:18px"><h2>Where students are coming from</h2><div id="map"></div>${mapStats(D)}</div>`,
-      after: () => drawMap(D, $('#map')) },
+      after: () => { drawMap(D, $('#map')); } },
     { id: 'mentors', label: 'Mentors', render: () => `<div class="grid" style="margin-bottom:18px">
       <div class="card"><h2>Mentor summary</h2><div class="stats" style="margin-top:0"><div class="stat"><b>${D.mentors.length}</b>Listed</div><div class="stat"><b>${conf}</b>Confirmed</div><div class="stat"><b>${D.mentors.length - conf}</b>To confirm</div></div>
         <h2 style="margin-top:18px">Guide for mentors</h2>${(() => { const g = D.links.filter(l => /mentor/i.test(l.name)); return g.length ? linksHTML(g) + '<p class="sub" style="margin-top:8px">Committee members can edit this document directly. Share it when you invite your mentors.</p>' : '<p class="empty">Add the mentor guide to Important Links in Airtable (with "mentor" in its name) and it will show here.</p>'; })()}</div>
       <div class="card s2"><h2>Mentor sessions and your role</h2>${D.agenda.filter(a => /mentor/i.test(a.session) && a.scTodo).map(a => `<div class="row"><span class="when">Day ${h(a.day)} · ${fmtDate(a.date)}</span><div><b>${h(a.session)}</b>${a.notes ? `<div class="sub">${h(a.notes)}</div>` : ''}${lines(a.scTodo).map(t => `<div class="sub">• ${h(t)}</div>`).join('')}</div></div>`).join('') || '<p class="empty">Mentor sessions will show here from the agenda.</p>'}</div></div>${g.html}`,
       after: g.wire },
     { id: 'agenda', label: 'Agenda and roles', render: () => `<div class="card"><h2>Agenda with committee roles</h2><p class="sub">${tzNote()} Your tasks are listed under each session.</p>${agendaHTML(C, 'scTodo')}</div>` },
-    { id: 'attendance', label: 'Attendance', render: () => `<div class="card"><h2>Student attendance</h2><input class="search" id="aq" type="search" placeholder="Filter by name, university or team" aria-label="Filter attendance"><div class="wrapx"><table><thead><tr><th>Student</th><th>University</th><th>Team</th><th>Days 1 to 10</th><th>Total</th></tr></thead><tbody id="att"></tbody></table></div></div>`,
-      after: () => { const draw = () => { const q = ($('#aq').value || '').toLowerCase(); const rows = D.attendance.filter(s => [s.name, s.uni, s.team].join(' ').toLowerCase().includes(q));
-        $('#att').innerHTML = rows.length ? rows.map(s => `<tr><td>${h(s.name)}</td><td>${h(s.uni)}</td><td>${h(s.team)}</td><td>${s.att.map(a => `<span class="att ${a ? 'y' : ''}"></span>`).join('')}</td><td>${s.att.filter(Boolean).length}</td></tr>`).join('') : '<tr><td colspan="5" class="empty">No students yet.</td></tr>'; };
-        $('#aq').oninput = draw; draw(); } },
+    { id: 'attendance', label: 'Attendance', render: () => { const el = elapsed();
+      const byUni = {}; D.attendance.forEach(s => { (byUni[s.uni || 'No university'] = byUni[s.uni || 'No university'] || []).push(s); });
+      return `<div class="card" style="margin-bottom:18px"><h2>Attendance by university</h2>
+        ${el ? `<p class="sub" style="margin:-4px 0 12px">Counted over the ${el} programme day${el === 1 ? '' : 's'} completed so far. Today is added once it is over.</p>` : '<p class="sub" style="margin:-4px 0 12px">Attendance will be counted from the end of Day 1.</p>'}
+        <div class="wrapx"><table><thead><tr><th>University</th><th>Students</th><th>Average attendance</th><th>Missed 2 or more days</th></tr></thead><tbody>
+        ${Object.keys(byUni).sort().map(u => { const L = byUni[u], att = L.reduce((n, s) => n + attended(s, el), 0), m = L.filter(s => missed(s, el) >= 2).length;
+          return `<tr><td><b>${h(u)}</b></td><td>${L.length}</td><td>${el ? Math.round(att / (L.length * el) * 100) + '%' : '–'}</td><td>${m ? `<span class="st Pending">${m} student${m === 1 ? '' : 's'}</span>` : el ? '<span class="st Confirmed">None</span>' : '–'}</td></tr>`; }).join('') || '<tr><td colspan="4" class="empty">No students yet.</td></tr>'}</tbody></table></div></div>
+      <div class="card"><h2>Student attendance</h2><input class="search" id="aq" type="search" placeholder="Filter by name, university or team" aria-label="Filter attendance">
+        <div class="chips" id="achips" role="group" aria-label="Show"><button type="button" data-f="" aria-pressed="true">Everyone</button><button type="button" data-f="2" aria-pressed="false">Missed 2 or more days</button></div>
+        <div class="wrapx"><table><thead><tr><th>Student</th><th>University</th><th>Team</th><th>Days 1 to 10</th><th>Attended</th></tr></thead><tbody id="att"></tbody></table></div></div>`; },
+      after: () => { const el = elapsed(); let min = 0;
+        const draw = () => { const q = ($('#aq').value || '').toLowerCase(); const rows = D.attendance.filter(s => [s.name, s.uni, s.team].join(' ').toLowerCase().includes(q) && missed(s, el) >= min);
+          $('#att').innerHTML = rows.length ? rows.map(s => `<tr><td>${h(s.name)}</td><td>${h(s.uni)}</td><td>${h(s.team)}</td><td>${s.att.map((a, i) => `<span class="att ${a ? 'y' : i < el ? 'n' : ''}" title="Day ${i + 1}: ${a ? 'attended' : i < el ? 'missed' : 'not yet held'}"></span>`).join('')}</td><td>${s.att.filter(Boolean).length}${el ? ' of ' + el : ''}</td></tr>`).join('') : `<tr><td colspan="5" class="empty">${min ? 'Nobody has missed two or more days.' : 'No students match.'}</td></tr>`; };
+        $('#aq').oninput = draw;
+        $('#achips').onclick = e => { const b = e.target.closest('button'); if (!b) return; min = +b.dataset.f; [...$('#achips').children].forEach(x => x.setAttribute('aria-pressed', x === b)); draw(); };
+        draw(); } },
     pastPage([]),
     { id: 'updates', label: 'Updates', render: () => `<div class="card"><h2>Recent updates</h2>${D.updates.map(u => `<div class="row"><span class="time">${fmtDate(u.date)}</span><div><b>${h(u.title)}</b><div>${h(u.summary)}</div></div></div>`).join('') || '<p class="empty">No updates yet.</p>'}</div>` },
     { id: 'committee', label: 'Committee contacts', render: () => `<div class="card"><h2>Committee contacts</h2><div class="cards">${D.committee.map(p => `<div class="person"><div class="av">${h(ini(p.name))}</div><div><b>${h(p.name)}</b><div class="sub">${h([p.role, p.uni].filter(Boolean).join(', '))}</div></div></div>`).join('')}</div></div>` },
