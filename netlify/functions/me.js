@@ -24,7 +24,10 @@ exports.handler = async event => {
     if (!who) { snap = await snapshot(event, { since: Date.now() - 5000 }); who = whoIn(snap.value); }
     if (!who) return json(401, { error: 'signed-out' });
 
-    const T = snap.value, students = T.Students, universities = T.Universities, committee = T['Steering Committee'];
+    // Maker's Asylum team rows sign in as committee (whoIn above uses the full table)
+    // but are left out of the committee list and the contacts students see.
+    const T = snap.value, students = T.Students, universities = T.Universities,
+      committee = T['Steering Committee'].filter(x => !/maker.s asylum team/i.test(String(x.Role || '')));
 
     // What every signed-in person may see about other students (no emails)
     const pub = x => ({
@@ -43,6 +46,7 @@ exports.handler = async event => {
         confirmed: !!m.Confirmed,
       })),
       links: T['Important Links'].filter(l => l.Name && (!asStudent || (l.Audience || 'Everyone') !== 'Steering Committee'))
+        .sort((a, b) => (a.Order ?? 9999) - (b.Order ?? 9999) || a.Name.localeCompare(b.Name))
         .map(l => ({ name: l.Name, note: l.Remarks || '', url: l.URL || '', due: l['Event Date/Deadline'] || null, sc: l.Audience === 'Steering Committee' })),
       agenda: T.Agenda.filter(a => a.Session && a.Date).map(a => ({
         session: a.Session, day: a['Day number'], date: a.Date, start: a['Start time'], end: a['End time'],

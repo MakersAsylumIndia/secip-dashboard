@@ -23,6 +23,7 @@ One website with two views. Students and steering committee members sign in with
 ## Who can sign in
 
 * Anyone in **Steering Committee** with an email gets the committee view. They can also open the student view with **See the student view** in the sidebar (and come back the same way). If they are in **Students** too, they see their own student record there; otherwise a stand-in profile.
+* Set a committee row's **Role** to *Maker's Asylum team* to give that person the committee view without listing them on the site: they are left out of the committee list and the contacts students see, but can still sign in and tick tasks.
 * Anyone in **Students** with an email address gets the student view.
 * Anyone else gets the same "check your inbox" message but no email, so the form can't be used to find out who is registered.
 
@@ -33,7 +34,7 @@ Sign-in links last 15 minutes. Sessions last 14 days. **Sign out** is in the sid
 | Site section | Airtable table |
 |---|---|
 | Morning brief, to-dos, timeline, agenda | Agenda (Students to-do / Steering Committee to-do) |
-| Important links | Important Links |
+| Important links | Important Links (shown by the *Order* number, lowest first; links with no Order come last, A to Z) |
 | Community map | Universities (latitude/longitude) + Students |
 | Mentor gallery (with photos) | Mentors (Photo, Expertise, Sessions, Confirmed…) |
 | Partner tiles | Partners (upload each Logo) |
