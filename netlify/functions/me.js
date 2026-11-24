@@ -2,6 +2,7 @@
 // Copyright 2026 Maker's Asylum Foundation
 const { verify, readCookie, airtable, json } = require('../../lib/util');
 const { snapshot } = require('../../lib/store');
+const { shape } = require('../../lib/schema');
 
 const days = rec => [...Array(10)].map((_, i) => !!rec[`Day ${i + 1}`]);
 const photo = att => (att && att[0] && ((att[0].thumbnails && att[0].thumbnails.large && att[0].thumbnails.large.url) || att[0].url)) || null;
@@ -77,7 +78,7 @@ exports.handler = async event => {
         .map(x => ({ name: x.Name, uni: x.University || '', email: x.Email.trim(), rep: isRep(x) }));
     } else {
       // The checklist is read straight from Airtable so a tick saved a moment ago shows at once.
-      const tasks = await airtable('SC Tasks', { 'sort[0][field]': 'Due date' }).catch(() => T['SC Tasks']);
+      const tasks = await airtable('SC Tasks').then(r => shape({ 'SC Tasks': r })['SC Tasks']).catch(() => T['SC Tasks']);
       data.me = { name: who.Name || '', uni: (who.University || '').trim(), role: who.Role || '', teams: who['Assigned teams'] || [] };
       data.committee = committee.filter(x => x.Name).map(x => ({ name: x.Name, uni: x.University || '', role: x.Role || '' }));
       data.tasks = tasks.filter(t => t.Task).map(t => ({ id: t.id, task: t.Task, notes: t.Notes || '', due: t['Due date'] || null, milestone: !!t.Milestone, doneBy: t['Done by'] || [] }));
