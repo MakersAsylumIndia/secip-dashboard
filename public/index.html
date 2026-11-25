@@ -120,6 +120,17 @@ td{padding:9px 6px;border-top:1.5px dashed var(--soft);vertical-align:top}
 .checks{margin:10px 0 0;padding:0;list-style:none;font-size:14px}.checks li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--soft)}.checks li:last-child{border:0}
 details.more{margin-top:12px;border-top:1.5px solid var(--soft);padding-top:8px}details.more summary{cursor:pointer;font-weight:700;color:var(--v)}
 .md{font-size:14px}.md p{margin:.55em 0}.md ul{margin:.4em 0;padding-left:1.2em}.md h4{margin:.9em 0 .3em}.md a{color:var(--ot);font-weight:600;word-break:break-word}
+/* Online lessons (Assessment 1A) */
+.lchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.lchip{display:flex;align-items:center;gap:8px;border:2px solid var(--ink);background:#fff;border-radius:14px;padding:8px 12px;cursor:pointer;font-weight:700;text-align:left}
+.lchip small{display:block;font-weight:400;color:var(--m)}.lchip[aria-pressed="true"]{background:var(--y)}.lchip .tick{width:22px;height:22px;border-radius:50%;border:2px solid var(--ink);display:grid;place-items:center;font-size:12px;flex-shrink:0}.lchip.done .tick{background:var(--mint)}
+.part{margin-top:18px}.part .num{font-size:12px;font-weight:700;color:var(--v);text-transform:uppercase;letter-spacing:.05em}
+.vid{position:relative;padding-top:56.25%;margin-top:12px;border:2px solid var(--ink);border-radius:14px;overflow:hidden;background:var(--ink)}.vid iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.quiz .qq{margin:18px 0 0;padding:14px;border:1.5px solid var(--soft);border-radius:14px}.quiz .qq legend{font-weight:700;padding:0 4px;float:left;width:100%;margin-bottom:8px}
+.quiz label.opt{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:10px;cursor:pointer;font-size:14px}.quiz label.opt:hover{background:var(--o3)}.quiz label.opt input{margin-top:3px}
+.quiz .qq.wrong{border-color:var(--red);background:#FFF5F4}.quiz .qq.right{border-color:var(--g);background:#F2FCF8}.quiz .opt.is-correct{background:var(--g2);font-weight:700}
+.quiz .flag{font-size:13px;font-weight:700;margin-top:6px}.quiz .wrong .flag{color:var(--red)}.quiz .right .flag{color:var(--g)}
+.qres{margin-top:16px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--ink);background:var(--y2)}.qres.ok{background:var(--g2)}
 .md table{border-collapse:collapse;width:100%;margin:.5em 0}.md th,.md td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--soft);vertical-align:top}.md th{border-bottom:2px solid var(--ink)}
 .mm .why{font-size:13px;color:var(--g);margin-top:4px}
 .loading{min-height:100vh;display:grid;place-items:center;color:var(--m);text-align:center;padding:24px}
@@ -475,6 +486,7 @@ function assessStatus(a, P, me) {
     return P.eportfolio ? { cls: 'Confirmed', text: 'Submitted' } : overdue(a) ? { cls: 'Late', text: 'Not submitted' } : { cls: 'Pending', text: 'Not submitted yet' };
   }
   if (a.kind === 'pitch' && P.team !== null) return P.team ? { cls: 'Confirmed', text: 'Team documents in' } : { cls: 'Pending', text: 'Team documents due' };
+  if (a.kind === 'lessons' && D_ && (D_.lessons.lessons || []).length && !isMonash(me)) { const n = D_.lessons.lessons.length, d = [...lessonsDone(D_)].length; return d >= n ? { cls: 'Confirmed', text: 'All lessons complete' } : { cls: d ? 'Pending' : 'Not', text: `${d} of ${n} lessons` }; }
   if (a.kind === 'participation') { const ok = P.reflections >= PARTICIPATION_DAYS && P.self1 && P.self2; return ok ? { cls: 'Confirmed', text: 'On track' } : { cls: 'Pending', text: 'In progress' }; }
   return null;
 }
@@ -488,11 +500,13 @@ function assessCard(a, P, me) {
     ${P && a.kind === 'participation' ? `<ul class="checks"><li><span>Daily reflections (${PARTICIPATION_DAYS} needed)</span><b>${P.reflections} of ${PARTICIPATION_DAYS}</b></li><li><span>Self-evaluation, week 1</span>${yn(P.self1)}</li><li><span>Self-evaluation, week 2</span>${yn(P.self2)}</li></ul>` : ''}
     ${P && a.kind === 'pitch' && P.team === null ? '<p class="sub">Your team’s submission status will show here once you are in a team.</p>' : ''}
     <div class="acts">${P && a.kind === 'eportfolio' && P.eportfolio && P.eportfolio.url ? `<a class="btn" href="${safeUrl(P.eportfolio.url)}" target="_blank" rel="noopener">My ePortfolio</a>` : ''}
-      ${a.link && !(a.kind === 'eportfolio' && /monash/i.test(me.uni || '')) ? `<a class="btn" href="${safeUrl(a.link)}" target="_blank" rel="noopener">${h(open)}</a>` : ''}
+      ${a.kind === 'lessons' && D_ && (D_.lessons.lessons || []).length && !isMonash(me) ? `<a class="btn" href="#lessons">${h(open)}</a>` : a.link && !(a.kind === 'eportfolio' && isMonash(me)) ? `<a class="btn" href="${safeUrl(a.link)}" target="_blank" rel="noopener">${h(open)}</a>` : ''}
       ${a.rubric.map(f => `<a class="btn quiet" href="${safeUrl(f.url)}" target="_blank" rel="noopener">${h(/rubric/i.test(f.name) ? 'Rubric' : f.name.replace(/\.(docx?\.)?pdf$|\.docx?$/i, ''))}</a>`).join('')}</div>
     ${a.notes ? `<details class="more"><summary>Full instructions</summary><div class="md">${md(a.notes)}</div></details>` : ''}</div>`;
 }
+let D_ = null; // the student's data, for the 1A card
 function assessPage(D, me) {
+  D_ = D;
   const A = D.assessments || [], P = D.progress;
   const summary = A.find(a => a.kind === 'summary'), main = A.filter(a => !['summary', 'resource'].includes(a.kind)), res = A.filter(a => a.kind === 'resource');
   return { id: 'assessments', label: 'Assessments', render: () => !A.length ? '<div class="card"><h2>Assessments</h2><p class="empty">Assessment details will appear here once they are added in Airtable.</p></div>'
@@ -502,6 +516,72 @@ function assessPage(D, me) {
     ${res.length ? `<div class="card" style="margin-top:20px"><h2>Resources</h2>${res.map(r => `<details class="more"><summary>${h(r.name)}</summary><div class="md">${md(r.notes)}</div>
       ${r.rubric.length ? `<div class="acts">${r.rubric.map(f => `<a class="btn quiet" href="${safeUrl(f.url)}" target="_blank" rel="noopener">${h(f.name)}</a>`).join('')}</div>` : ''}</details>`).join('')}</div>` : ''}` };
 }
+// ---------- Assessment 1A: online lessons with quizzes ----------
+// Lessons come from the "Assessment 1A : Pre Program" table, questions from "Lesson Quiz Questions".
+// The browser never sees the correct answers: /api/quiz marks each attempt and saves it to Airtable.
+const ytId = u => (String(u).match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/)|youtu\.be\/)([\w-]{11})/) || [])[1];
+const isMonash = me => /monash/i.test(me.uni || '');
+// Lessons passed: what Airtable says, plus passes made on this device in the last minute
+// (the shared snapshot can be up to a minute behind a new attempt).
+const lessonsDone = D => new Set([...((D.progress && D.progress.lessons) || []), ...(D.lessons.lessons || []).map(L => L.n).filter(n => store.get('quizpass:' + n) === '1')]);
+function partHTML(P, i) {
+  const vids = P.links.filter(l => ytId(l.url)).map(l => l.url), other = P.links.filter(l => !ytId(l.url));
+  return `<div class="card part"><div class="num">${P.order ? `Part ${P.order}` : 'Introduction'}</div><h2>${h(P.title || `Part ${P.order}`)}</h2>
+    ${P.body ? `<div class="md">${md(P.body)}</div>` : ''}
+    ${vids.map(u => `<div class="vid"><iframe src="https://www.youtube-nocookie.com/embed/${ytId(u)}" title="${h(P.title || 'Video')}" loading="lazy" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>`).join('')}
+    ${other.length || P.files.length ? `<div class="acts">${other.map(l => `<a class="btn" href="${safeUrl(l.url)}" target="_blank" rel="noopener">${h(l.label || (/\.pdf($|\?)/i.test(l.url) ? 'Open the reading' : 'Open the resource'))}</a>`).join('')}${P.files.map(f => `<a class="btn quiet" href="${safeUrl(f.url)}" target="_blank" rel="noopener">${h(f.name)}</a>`).join('')}</div>` : ''}</div>`;
+}
+function quizHTML(D, L, state) {
+  const qs = (D.quiz || {})[L.n] || [], done = lessonsDone(D).has(L.n), r = state[L.n] || {};
+  if (!qs.length) return `<div class="card quiz"><h2>Lesson ${L.n} quiz</h2><p class="empty">The quiz for this lesson will appear here soon.</p></div>`;
+  const wrong = new Set(r.wrong || []), review = r.review || null;
+  return `<div class="card quiz" id="quiz"><h2>Lesson ${L.n} quiz</h2>
+    <p class="sub">Answer all ${qs.length} questions. You need every answer right to complete the lesson, and you can try as many times as you need.</p>
+    ${done && !r.result ? '<div class="qres ok">You have completed this lesson. You can take the quiz again to revise if you like.</div>' : ''}
+    <form id="qform">${qs.map((q, i) => { const st = r.result ? (wrong.has(q.id) ? 'wrong' : 'right') : '';
+      return `<fieldset class="qq ${st}"><legend>${i + 1}. ${h(q.q)}</legend>${q.options.map(o => `<label class="opt ${review && review[q.id] && review[q.id].correct === o.k ? 'is-correct' : ''}"><input type="radio" name="${h(q.id)}" value="${o.k}" ${(r.answers || {})[q.id] === o.k ? 'checked' : ''}><span>${h(o.t)}</span></label>`).join('')}
+        ${st === 'wrong' ? '<div class="flag">Not quite. Have another look at the lesson and try again.</div>' : st === 'right' ? '<div class="flag">Correct</div>' : ''}
+        ${review && review[q.id] && review[q.id].explanation ? `<div class="sub md">${md(review[q.id].explanation)}</div>` : ''}</fieldset>`; }).join('')}
+      <div class="acts"><button class="btn" type="submit">${r.result ? 'Check my answers again' : 'Check my answers'}</button></div></form>
+    <div id="qmsg" role="status">${r.result ? (r.result.passed ? `<div class="qres ok"><b>Lesson ${L.n} complete.</b> All ${r.result.total} answers are right.${r.result.saved === false ? ' (This attempt was not recorded, because you are not enrolled as a student.)' : ''}</div>` : `<div class="qres"><b>${r.result.score} of ${r.result.total} right.</b> The questions marked in red need another look.</div>`) : ''}</div></div>`;
+}
+function lessonsPage(D, me) {
+  const LS = D.lessons.lessons || [], state = {};
+  let cur = Number(store.get('lesson')) || (LS.find(L => !lessonsDone(D).has(L.n)) || LS[0] || {}).n;
+  const a1 = (D.assessments || []).find(a => a.kind === 'lessons');
+  const top = () => { const done = lessonsDone(D); return `<div class="card"><h2>Assessment 1A: Online lessons</h2>
+    ${a1 ? `<div>${a1.value ? `<span class="tag">Worth ${h(a1.value)}</span>` : ''}${a1.due ? `<span class="tag">Due ${h(dueLabel(a1))}</span>` : ''}</div>` : ''}
+    <p class="sub">Work through each lesson, then answer its quiz. A lesson is complete when every quiz answer is right. Complete all ${LS.length} lessons by the due date for full marks.</p>
+    ${isMonash(me) ? '<div class="note">Monash students complete the online lessons on Moodle. You are welcome to read the lessons here, but quiz answers here do not count.</div>' : ''}
+    <div class="lchips" role="group" aria-label="Lessons">${LS.map(L => `<button type="button" class="lchip ${done.has(L.n) ? 'done' : ''}" data-l="${L.n}" aria-pressed="${L.n === cur}"><span class="tick">${done.has(L.n) ? '✓' : L.n}</span><span>Lesson ${L.n}<small>${h(L.title)}${L.minutes ? ` · ${L.minutes} min` : ''}</small></span></button>`).join('')}</div>
+    <p class="sub" style="margin-top:12px"><b>${[...done].filter(n => LS.some(L => L.n === n)).length} of ${LS.length}</b> lessons complete</p></div>`; };
+  const lessonView = () => { const L = LS.find(x => x.n === cur); if (!L) return '';
+    const i = LS.indexOf(L);
+    return `<div class="card part"><div class="num">Lesson ${L.n}</div><h2>${h(L.title)}</h2>${L.intro ? `<div class="md">${md(L.intro)}</div>` : ''}</div>
+      ${L.parts.map(partHTML).join('')}${isMonash(me) ? '' : quizHTML(D, L, state)}
+      ${LS[i + 1] ? `<div class="acts" style="margin-top:18px"><button class="btn" type="button" data-l="${LS[i + 1].n}">Next: Lesson ${LS[i + 1].n}</button></div>` : ''}`; };
+  const draw = () => { $('#main').innerHTML = `${top()}<div id="lview">${lessonView()}</div>`; wire(); };
+  const wire = () => {
+    document.querySelectorAll('[data-l]').forEach(b => b.onclick = () => { cur = Number(b.dataset.l); store.set('lesson', cur); draw(); window.scrollTo(0, 0); });
+    const f = $('#qform'); if (!f) return;
+    f.onsubmit = async e => {
+      e.preventDefault();
+      const qs = D.quiz[cur], answers = {};
+      qs.forEach(q => { const c = f.querySelector(`input[name="${CSS.escape(q.id)}"]:checked`); if (c) answers[q.id] = c.value; });
+      if (Object.keys(answers).length < qs.length) { $('#qmsg').innerHTML = `<div class="qres">Please answer all ${qs.length} questions first.</div>`; return; }
+      const btn = f.querySelector('button[type=submit]'); btn.disabled = true; btn.textContent = 'Checking…';
+      let r = null; try { r = await fetch('/api/quiz', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lesson: cur, answers }) }); } catch {}
+      if (r && r.status === 401) { location.reload(); return; }
+      if (!r || !r.ok) { btn.disabled = false; btn.textContent = 'Check my answers'; $('#qmsg').innerHTML = '<div class="qres">Your answers could not be checked just now. Check your connection and try again.</div>'; return; }
+      const res = await r.json();
+      state[cur] = { answers, wrong: res.wrong, review: res.review, result: res };
+      if (res.passed) store.set('quizpass:' + cur, '1');
+      draw(); $('#quiz').scrollIntoView({ block: 'start' });
+    };
+  };
+  return { id: 'lessons', label: 'Online lessons', render: () => '', after: draw };
+}
+
 // The next assessment deadline still to come (for Home)
 const nextAssessment = D => (D.assessments || []).filter(a => a.due && a.due >= todayISO() && !['summary', 'resource'].includes(a.kind)).sort((a, b) => a.due.localeCompare(b.due))[0];
 
@@ -564,6 +644,7 @@ function studentApp(D) {
       <div class="card"><h2>My team</h2>${mates.length ? mates.map(m => `<div class="row"><div class="person"><div class="av">${h(ini(m.name))}</div><div><b>${h(m.name)}</b><div class="sub">${h([m.uni, m.country].filter(Boolean).join(', '))}</div></div></div></div>`).join('') : '<p class="empty">Teams are announced before Day 1.</p>'}</div>
       <div class="card s3"><h2>Attendance</h2><div class="tl" style="margin-top:6px">${me.att.map((a, i) => `<div class="step ${a ? 'done' : ''}"><div class="dot"></div><div class="d">Day ${i + 1}</div></div>`).join('')}</div></div></div>` },
     ...((D.assessments || []).length ? [assessPage(D, me)] : []),
+    ...((D.lessons && (D.lessons.lessons || []).length) ? [lessonsPage(D, me)] : []),
     { id: 'directory', label: 'Student directory', render: () => `<div class="card"><h2>Student directory</h2><input class="search" id="q" type="search" placeholder="Search by name, university, country or goal" aria-label="Search students"><div class="cards" id="dir"></div></div>`,
       after: () => { const draw = () => { const q = ($('#q').value || '').toLowerCase(); const list = D.students.filter(s => [s.name, s.uni, s.country, s.team, ...s.sdg].join(' ').toLowerCase().includes(q));
         $('#dir').innerHTML = list.length ? list.map(s => `<div class="card person"><div class="av">${h(ini(s.name))}</div><div><b>${h(s.name)}</b><div class="sub">${h(s.uni)}</div><div class="sub">${h([s.country, s.team].filter(Boolean).join(', '))}</div>${s.sdg.slice(0, 2).map(t => `<span class="tag">${h(t)}</span>`).join('')}</div></div>`).join('') : '<p class="empty">No students match that search.</p>'; };
