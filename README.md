@@ -13,7 +13,7 @@ One website with two views. Students and steering committee members sign in with
 
 ## Setup, step by step
 
-1. **Airtable token.** Airtable > Builder hub > Personal access tokens > Create. Scopes: `data.records:read`, plus `data.records:write` if you want committee checklist ticks shared (see *Shared checklist* below). Access: the *SECIP Jan 2027* base (and past cohort bases, read-only use, for the Past projects page). Copy the token.
+1. **Airtable token.** Airtable > Builder hub > Personal access tokens > Create. Scopes: `data.records:read`, plus `data.records:write` if you want committee checklist ticks shared (see *Shared checklist* below) and lesson quiz attempts saved (see *Online lessons* below). Access: the *SECIP Jan 2027* base (and past cohort bases, read-only use, for the Past projects page). Copy the token.
 2. **Resend.** Sign up, add your domain under *Domains*, and add the DNS records it shows you at your domain registrar. Wait until it says *Verified*, then create an API key.
 3. **Netlify.** Add new site > *Deploy manually* and drag this whole folder in (or connect a GitHub repo containing it).
 4. **Environment variables.** Netlify > Site configuration > Environment variables. Add the six values from `.env.example`. For `SESSION_SECRET`, use a long random string (40+ characters).
