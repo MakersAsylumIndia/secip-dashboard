@@ -112,6 +112,15 @@ td{padding:9px 6px;border-top:1.5px dashed var(--soft);vertical-align:top}
 .att{display:inline-block;width:14px;height:14px;border-radius:4px;background:var(--soft);margin-right:3px}.att.y{background:var(--mint);box-shadow:inset 0 0 0 1.5px var(--ink)}.att.n{background:#fff;box-shadow:inset 0 0 0 1.5px var(--red)}
 .day h3{margin:20px 0 6px;font-size:16px;display:inline-block;background:var(--y2);border-radius:8px;padding:2px 10px}
 .empty{color:var(--m);font-size:14px;padding:6px 0}
+/* Assessments */
+.st.Late{background:#FDE2E0;color:var(--red)}
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;align-items:start;margin-top:20px}
+.ahead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.ahead h2{margin-bottom:6px}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.checks{margin:10px 0 0;padding:0;list-style:none;font-size:14px}.checks li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--soft)}.checks li:last-child{border:0}
+details.more{margin-top:12px;border-top:1.5px solid var(--soft);padding-top:8px}details.more summary{cursor:pointer;font-weight:700;color:var(--v)}
+.md{font-size:14px}.md p{margin:.55em 0}.md ul{margin:.4em 0;padding-left:1.2em}.md h4{margin:.9em 0 .3em}.md a{color:var(--ot);font-weight:600;word-break:break-word}
+.md table{border-collapse:collapse;width:100%;margin:.5em 0}.md th,.md td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--soft);vertical-align:top}.md th{border-bottom:2px solid var(--ink)}
 .mm .why{font-size:13px;color:var(--g);margin-top:4px}
 .loading{min-height:100vh;display:grid;place-items:center;color:var(--m);text-align:center;padding:24px}
 
@@ -414,6 +423,88 @@ const matchCard = (x, me) => `<div class="card person mm"><div class="av">${h(in
 const matchEmpty = me => me.sdg.length ? '<p class="empty">No matches yet. More people will appear as universities send in their student lists.</p>'
   : '<p class="empty">Choose your SDG interests in the team survey and we’ll suggest people who share them.</p>';
 
+// ---------- assessments ----------
+// Airtable rich text arrives as Markdown. This renders the parts the assessment notes use (bold,
+// links, lists, headings, pipe tables) and escapes everything else, so no HTML from Airtable runs.
+function md(src) {
+  const ESC = [], TOK = [];
+  const tok = html => { TOK.push(html); return `\u0002${TOK.length - 1}\u0003`; };
+  let text = String(src || '').replace(/\\([\\`*_{}\[\]()#+\-.!|<>~])/g, (m, c) => { ESC.push(c); return `\u0000${ESC.length - 1}\u0001`; });
+  const restore = t => t.replace(/\u0002(\d+)\u0003/g, (m, i) => TOK[i]).replace(/\u0000(\d+)\u0001/g, (m, i) => h(ESC[i]));
+  const bold = t => t.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\*\*/g, '');
+  const a = (u, label) => tok(`<a href="${h(u.trim())}" target="_blank" rel="noopener">${label}</a>`);
+  const inline = t => {
+    t = h(t);
+    t = t.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\s*\)/g, (m, label, u) => a(u.replace(/&amp;/g, '&'), bold(label.trim())));
+    t = t.replace(/&lt;(https?:\/\/[^\s]+?)&gt;/g, (m, u) => a(u.replace(/&amp;/g, '&'), u));
+    t = t.replace(/(^|[\s(])(https?:\/\/[^\s<]+)/g, (m, pre, u) => pre + a(u.replace(/&amp;/g, '&'), u));
+    return restore(bold(t));
+  };
+  const cells = l => { let x = l.trim(), head = false; if (/^\*\*.*\*\*$/.test(x)) { head = true; x = x.slice(2, -2); } return { head, cells: x.split('|').map(c => c.trim()) }; };
+  const out = [], L = text.split('\n');
+  let para = [], list = [];
+  const flush = () => { if (para.length) out.push(`<p>${para.map(inline).join('<br>')}</p>`); if (list.length) out.push(`<ul>${list.map(x => `<li>${inline(x)}</li>`).join('')}</ul>`); para = []; list = []; };
+  for (let i = 0; i < L.length; i++) {
+    const l = L[i];
+    if (!l.trim()) { flush(); continue; }
+    if (l.includes('|') && L[i + 1] && L[i + 1].includes('|')) {
+      flush(); const rows = [];
+      while (i < L.length && L[i].includes('|')) rows.push(cells(L[i++]));
+      i--;
+      out.push(`<table>${rows.map(r => `<tr>${r.cells.map(c => r.head ? `<th>${inline(c)}</th>` : `<td>${inline(c)}</td>`).join('')}</tr>`).join('')}</table>`);
+      continue;
+    }
+    const li = l.match(/^\s*[-*]\s+(.*)/), hd = l.match(/^\s*#{1,6}\s+(.*)/);
+    if (li) { if (para.length) { const keep = list; list = []; flush(); list = keep; } list.push(li[1]); continue; }
+    if (hd) { flush(); out.push(`<h4>${inline(hd[1])}</h4>`); continue; }
+    if (list.length) flush();
+    para.push(l.trim());
+  }
+  flush();
+  return out.join('');
+}
+
+const PARTICIPATION_DAYS = 8; // daily reflections needed for full marks (Assessment 4 rubric)
+const dueLabel = a => a.due ? fmtDate(a.due, { day: 'numeric', month: 'short', year: 'numeric' }) : a.dueText;
+const overdue = a => !!a.due && a.due < todayISO();
+// Where this student stands on one assessment: { cls, text } for the status pill, or null.
+function assessStatus(a, P, me) {
+  if (!P) return null;
+  if (a.kind === 'eportfolio') {
+    if (/monash/i.test(me.uni || '')) return { cls: 'Not', text: 'Submit on Moodle' };
+    return P.eportfolio ? { cls: 'Confirmed', text: 'Submitted' } : overdue(a) ? { cls: 'Late', text: 'Not submitted' } : { cls: 'Pending', text: 'Not submitted yet' };
+  }
+  if (a.kind === 'pitch' && P.team !== null) return P.team ? { cls: 'Confirmed', text: 'Team documents in' } : { cls: 'Pending', text: 'Team documents due' };
+  if (a.kind === 'participation') { const ok = P.reflections >= PARTICIPATION_DAYS && P.self1 && P.self2; return ok ? { cls: 'Confirmed', text: 'On track' } : { cls: 'Pending', text: 'In progress' }; }
+  return null;
+}
+function assessCard(a, P, me) {
+  const st = assessStatus(a, P, me);
+  const open = { eportfolio: 'Submission form', lessons: 'Open the lessons', forum: 'Open the forum' }[a.kind] || 'Open';
+  const yn = b => b ? '<span class="st Confirmed">Done</span>' : '<span class="st Pending">Not yet</span>';
+  return `<div class="card" id="as-${h(a.name.replace(/\W+/g, '-').toLowerCase())}"><div class="ahead"><h2>${h(a.name)}</h2>${st ? `<span class="st ${st.cls}">${h(st.text)}</span>` : ''}</div>
+    <div>${a.value ? `<span class="tag">Worth ${h(a.value)}</span>` : ''}${a.due ? `<span class="tag">Due ${h(dueLabel(a))}</span>` : a.dueText ? `<span class="tag">${h(a.dueText.split(/(?<=\.)\s/)[0])}</span>` : ''}</div>
+    ${a.purpose ? `<p class="sub">${h(a.purpose)}</p>` : ''}
+    ${P && a.kind === 'participation' ? `<ul class="checks"><li><span>Daily reflections (${PARTICIPATION_DAYS} needed)</span><b>${P.reflections} of ${PARTICIPATION_DAYS}</b></li><li><span>Self-evaluation, week 1</span>${yn(P.self1)}</li><li><span>Self-evaluation, week 2</span>${yn(P.self2)}</li></ul>` : ''}
+    ${P && a.kind === 'pitch' && P.team === null ? '<p class="sub">Your team’s submission status will show here once you are in a team.</p>' : ''}
+    <div class="acts">${P && a.kind === 'eportfolio' && P.eportfolio && P.eportfolio.url ? `<a class="btn" href="${safeUrl(P.eportfolio.url)}" target="_blank" rel="noopener">My ePortfolio</a>` : ''}
+      ${a.link && !(a.kind === 'eportfolio' && /monash/i.test(me.uni || '')) ? `<a class="btn" href="${safeUrl(a.link)}" target="_blank" rel="noopener">${h(open)}</a>` : ''}
+      ${a.rubric.map(f => `<a class="btn quiet" href="${safeUrl(f.url)}" target="_blank" rel="noopener">${h(/rubric/i.test(f.name) ? 'Rubric' : f.name.replace(/\.(docx?\.)?pdf$|\.docx?$/i, ''))}</a>`).join('')}</div>
+    ${a.notes ? `<details class="more"><summary>Full instructions</summary><div class="md">${md(a.notes)}</div></details>` : ''}</div>`;
+}
+function assessPage(D, me) {
+  const A = D.assessments || [], P = D.progress;
+  const summary = A.find(a => a.kind === 'summary'), main = A.filter(a => !['summary', 'resource'].includes(a.kind)), res = A.filter(a => a.kind === 'resource');
+  return { id: 'assessments', label: 'Assessments', render: () => !A.length ? '<div class="card"><h2>Assessments</h2><p class="empty">Assessment details will appear here once they are added in Airtable.</p></div>'
+    : `${summary ? `<div class="card"><h2>How you are assessed</h2><div class="md">${md(summary.notes)}</div></div>` : ''}
+    ${D.preview ? '<div class="note" style="margin-top:20px">Submission status shows for enrolled students. The stand-in profile has none.</div>' : ''}
+    <div class="agrid">${main.map(a => assessCard(a, P, me)).join('')}</div>
+    ${res.length ? `<div class="card" style="margin-top:20px"><h2>Resources</h2>${res.map(r => `<details class="more"><summary>${h(r.name)}</summary><div class="md">${md(r.notes)}</div>
+      ${r.rubric.length ? `<div class="acts">${r.rubric.map(f => `<a class="btn quiet" href="${safeUrl(f.url)}" target="_blank" rel="noopener">${h(f.name)}</a>`).join('')}</div>` : ''}</details>`).join('')}</div>` : ''}` };
+}
+// The next assessment deadline still to come (for Home)
+const nextAssessment = D => (D.assessments || []).filter(a => a.due && a.due >= todayISO() && !['summary', 'resource'].includes(a.kind)).sort((a, b) => a.due.localeCompare(b.due))[0];
+
 // ---------- student ----------
 function studentApp(D) {
   const me = D.me, C = calendar(D.agenda);
@@ -425,8 +516,9 @@ function studentApp(D) {
   const key = (i, t) => `todo:${C.today}:${i}:${t.slice(0, 30)}`;
   const g = mentorGallery(D, false);
   const MM = matchmaker(D, me);
+  const nextA = nextAssessment(D);
   // Before Day 1 the agenda has no to-dos for "today", so show the getting-ready checklist instead.
-  const assess = D.links.find(l => /assessment/i.test(l.name) && l.url);
+  const assess = (D.assessments || []).length ? { url: '#assessments' } : D.links.find(l => /assessment/i.test(l.name) && l.url);
   const pre = [
     { t: 'Familiarise yourself with this portal' },
     { t: 'Check your team allocation', href: '#profile', label: 'My profile' },
@@ -459,7 +551,9 @@ function studentApp(D) {
       <div class="card s3"><h2>Past projects on your goals</h2><p class="sub" style="margin:-4px 0 12px">What earlier SECIP teams built for the goals you care about.</p><div class="cards" id="pphome"><p class="empty">Loading…</p></div>
         <button class="btn" type="button" style="margin-top:12px" onclick="location.hash='past'">Explore all past projects</button></div>
       <div class="card s2"><h2>Community map</h2><div id="map"></div>${mapStats(D)}</div>
-      <div class="card"><h2>Your progress</h2><div class="stat" style="margin-bottom:10px"><b>${me.att.filter(Boolean).length}/${C.dates.length || 10}</b>Days attended</div><div class="stat"><b>${C.before ? 0 : C.after ? 100 : Math.round(C.cur / Math.max(C.dates.length, 1) * 100)}%</b>Programme complete</div></div>
+      <div class="card"><h2>Your progress</h2><div class="stat" style="margin-bottom:10px"><b>${me.att.filter(Boolean).length}/${C.dates.length || 10}</b>Days attended</div><div class="stat"${D.progress ? ' style="margin-bottom:10px"' : ''}><b>${C.before ? 0 : C.after ? 100 : Math.round(C.cur / Math.max(C.dates.length, 1) * 100)}%</b>Programme complete</div>
+        ${D.progress ? `<div class="stat"><b>${D.progress.reflections}/${PARTICIPATION_DAYS}</b>Daily reflections</div>` : ''}
+        ${nextA ? `<p class="sub" style="margin-top:12px">Next deadline: <b>${h(nextA.name)}</b>, ${h(fmtDate(nextA.due, { day: 'numeric', month: 'short' }))}. <a href="#assessments">See assessments</a></p>` : ''}</div>
       <div class="card s3"><h2>Programme partners</h2>${partnersHTML(D.partners)}</div></div>`,
       after: () => { document.querySelectorAll('[data-k]').forEach(c => c.onchange = () => store.set(c.dataset.k, c.checked ? '1' : '0')); loadPast().then(P => { const el = $('#pphome'); if (!el) return; const L = rankPast(P, '', sdgOf(me.sdg)).slice(0, 3); el.innerHTML = L.length ? L.map(x => pastCard(x.p)).join('') : '<p class="empty">Add your SDG interests in the team survey to see projects on your goals.</p>'; wirePastClicks(el, P); }); drawMap(D, $('#map')); } },
     { id: 'profile', label: 'My profile', render: () => `${header}<div class="grid">
@@ -469,6 +563,7 @@ function studentApp(D) {
       <div class="card"><h2>Skills I bring</h2>${me.skills ? `<p>${h(me.skills)}</p>` : '<p class="empty">Add your skills on the application form and they’ll show here.</p>'}</div>
       <div class="card"><h2>My team</h2>${mates.length ? mates.map(m => `<div class="row"><div class="person"><div class="av">${h(ini(m.name))}</div><div><b>${h(m.name)}</b><div class="sub">${h([m.uni, m.country].filter(Boolean).join(', '))}</div></div></div></div>`).join('') : '<p class="empty">Teams are announced before Day 1.</p>'}</div>
       <div class="card s3"><h2>Attendance</h2><div class="tl" style="margin-top:6px">${me.att.map((a, i) => `<div class="step ${a ? 'done' : ''}"><div class="dot"></div><div class="d">Day ${i + 1}</div></div>`).join('')}</div></div></div>` },
+    ...((D.assessments || []).length ? [assessPage(D, me)] : []),
     { id: 'directory', label: 'Student directory', render: () => `<div class="card"><h2>Student directory</h2><input class="search" id="q" type="search" placeholder="Search by name, university, country or goal" aria-label="Search students"><div class="cards" id="dir"></div></div>`,
       after: () => { const draw = () => { const q = ($('#q').value || '').toLowerCase(); const list = D.students.filter(s => [s.name, s.uni, s.country, s.team, ...s.sdg].join(' ').toLowerCase().includes(q));
         $('#dir').innerHTML = list.length ? list.map(s => `<div class="card person"><div class="av">${h(ini(s.name))}</div><div><b>${h(s.name)}</b><div class="sub">${h(s.uni)}</div><div class="sub">${h([s.country, s.team].filter(Boolean).join(', '))}</div>${s.sdg.slice(0, 2).map(t => `<span class="tag">${h(t)}</span>`).join('')}</div></div>`).join('') : '<p class="empty">No students match that search.</p>'; };
