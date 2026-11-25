@@ -43,6 +43,7 @@ Sign-in links last 15 minutes. Sessions last 14 days. **Sign out** is in the sid
 | Updates | Updates |
 | Attendance | Students (Day 1 to Day 10) |
 | Assessments (student view) | Assessment Overview, plus each student's own submissions (see *Assessments* below) |
+| Online lessons and quizzes (student view) | Assessment 1A : Pre Program, Lesson Quiz Questions, Lesson Quiz Results |
 
 ## Privacy
 
@@ -65,6 +66,16 @@ Each student also sees what they have handed in, matched by their email address:
 | Participation: daily reflections, self-evaluations | Learning Reflection, Self Evaluation - Week 1 and Week 2 (*Email*) |
 
 Only email addresses, team numbers and days are kept from those forms, and each student's status is worked out on the server, so no one sees anyone else's submissions. Any of these tables can be missing from a base: that part is simply left out.
+
+### Online lessons (Assessment 1A)
+
+Students do Assessment 1A on the **Online lessons** page instead of following links to Airtable and SurveyMonkey.
+
+* **Lesson content** comes from the *Assessment 1A : Pre Program* table. Name rows *Lesson 2* (the lesson's introduction, with *Time (Mins)*), *Lesson 2 : Intro*, *Lesson 2 : Part 1*, *Lesson 2 : Part 2* and so on. The first line of *Description* is the heading. YouTube links in *Reference Video to be watched* play inside the page; other links and *Attachments* become buttons. Rows with the same name are shown together, so a part can have several links. *Lesson N : Quiz* rows (the old SurveyMonkey links) are ignored, and *Pre Program Overview* is not shown as a lesson.
+* **Questions** come from **Lesson Quiz Questions**: *Lesson*, *Order*, *Option A* to *D* (leave unused ones empty), *Correct answer*, an optional *Explanation*, and *Active* (only ticked questions are shown).
+* **Marking** happens on the server (`/api/quiz`), so the correct answers are never sent to students' browsers. A lesson is complete when every answer is right; students can try as often as they need, and see which questions to look at again. Answers and explanations are shown once they get everything right.
+* **Results**: every attempt is saved to **Lesson Quiz Results** (email, name, university, lesson, score, passed, time). The 1A card on the Assessments page shows "2 of 4 lessons" from the passed attempts. This needs the `data.records:write` scope on the token.
+* **Monash** students can read the lessons but see a note that they complete 1A on Moodle, and get no quiz.
 
 ## Shared checklist
 
