@@ -42,10 +42,29 @@ Sign-in links last 15 minutes. Sessions last 14 days. **Sign out** is in the sid
 | University status | Universities |
 | Updates | Updates |
 | Attendance | Students (Day 1 to Day 10) |
+| Assessments (student view) | Assessment Overview, plus each student's own submissions (see *Assessments* below) |
 
 ## Privacy
 
 Student emails are never sent to anyone's browser. They stay on the server side: in Airtable, and in the site's private Netlify Blobs cache (see *Speed and Airtable limits*). Other students see only name, university, country, team and goals. Committee-only fields (committee to-dos, notes, attendance, task list) are only sent to committee sessions. The Airtable token stays on the server.
+
+## Assessments
+
+Students get an **Assessments** page (and a "next deadline" line on Home) built from the **Assessment Overview** table:
+
+* A row called *Assessment* is shown first, as the summary. Rows whose name starts with *Assessment* get a card each; anything else (Discord instructions, teamwork resources) is listed under *Resources*.
+* The due date, weighting and purpose are read from the **Due**, **Value** and **Purpose** lines in *Notes*. To set them directly, add a *Due date* (date) or *Value* field: those win when filled in.
+* *Link* becomes the card's main button, and files in *Assessment Rubric* become rubric links. *Notes* show under *Full instructions*.
+
+Each student also sees what they have handed in, matched by their email address:
+
+| On the card | Comes from |
+|---|---|
+| ePortfolio: Submitted / Not submitted yet | Assessment 2: Individual experiential ePortfolio Submission (*Email*). Monash students are told to submit on Moodle instead. |
+| Team pitch: Team documents in | Open House Submission (*Team Number*, matched to the student's team) |
+| Participation: daily reflections, self-evaluations | Learning Reflection, Self Evaluation - Week 1 and Week 2 (*Email*) |
+
+Only email addresses, team numbers and days are kept from those forms, and each student's status is worked out on the server, so no one sees anyone else's submissions. Any of these tables can be missing from a base: that part is simply left out.
 
 ## Shared checklist
 
