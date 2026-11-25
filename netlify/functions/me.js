@@ -2,7 +2,7 @@
 // Copyright 2026 Maker's Asylum Foundation
 const { verify, readCookie, airtable, json } = require('../../lib/util');
 const { snapshot } = require('../../lib/store');
-const { shape } = require('../../lib/schema');
+const { shape, progressFor } = require('../../lib/schema');
 
 const days = rec => [...Array(10)].map((_, i) => !!rec[`Day ${i + 1}`]);
 const photo = att => (att && att[0] && ((att[0].thumbnails && att[0].thumbnails.large && att[0].thumbnails.large.url) || att[0].url)) || null;
@@ -67,6 +67,10 @@ exports.handler = async event => {
       data.me = me
         ? { ...pub(me), degree: me.Degree || '', year: me['Year of study'] || '', skills: me.Skills || '', profile: me['Professional profile'] || '', att: days(me) }
         : { name: who.Name || '', uni: who.University || '', country: '', city: '', team: '', sdg: [], degree: '', year: '', skills: '', profile: '', att: days({}) };
+      // Assessments: what each one asks, and (for an enrolled student) what they have handed in.
+      // Progress is worked out here so other students' submissions never reach the browser.
+      data.assessments = (T.Assessments || []).map(a => ({ ...a }));
+      data.progress = me ? progressFor(T.Submissions || { eportfolio: [], teams: [], reflections: [], self1: [], self2: [] }, me) : null;
       // Steering Committee contacts so students can reach their university's representative.
       // Only name, university and work email; internal role notes stay hidden.
       const repOf = Object.fromEntries(universities.map(u => [(u.Name || '').trim().toLowerCase(), (u['SC representative'] || '').toLowerCase()]));
