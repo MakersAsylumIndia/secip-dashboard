@@ -726,12 +726,12 @@ function committeeApp(D) {
 
   shell(D, [
     { id: 'home', label: 'Home', render: () => `${header}<div class="grid">
-      ${brief()}
-${checklist()}
-      <div class="card"><h2>Important links</h2>${linksHTML(D.links)}</div>
       <div class="card s3"><h2>Road to launch</h2>${(() => { const ms = D.tasks.filter(t => t.milestone && t.due); if (!ms.length) return '<p class="empty">Mark tasks as milestones in Airtable to show them here.</p>';
         const all = [...ms, ...(ms.some(m => m.due === C.dates[0]) ? [] : [{ task: 'Programme starts', due: C.dates[0] }])].filter(m => m.due).sort((a, b) => a.due < b.due ? -1 : 1); const pos = all.findIndex(m => m.due > today); const p = pos < 0 ? all.length : pos;
         return `<div class="tl"><div class="bar" style="width:${Math.max(0, (p - 1) / Math.max(all.length - 1, 1) * 100)}%"></div>${all.map((m, i) => `<div class="step ${i < p ? 'done' : i === p ? 'now' : ''}"><div class="dot"></div><div class="d">${fmtDate(m.due)}</div><b>${h(m.task)}</b></div>`).join('')}</div>`; })()}</div>
+      ${brief()}
+${checklist()}
+      <div class="card"><h2>Important links</h2>${linksHTML(D.links)}</div>
       <div class="card s3"><h2>Programme partners</h2>${partnersHTML(D.partners)}</div></div>`,
       after: wireChecklist },
     { id: 'universities', label: 'University status', render: () => `${header}<div class="card"><h2>Participation by university</h2><div class="wrapx"><table><thead><tr><th>University</th><th>Committee contact</th><th>Participation</th><th>Student list</th><th>Mentor list</th><th>Checklist</th></tr></thead><tbody>
