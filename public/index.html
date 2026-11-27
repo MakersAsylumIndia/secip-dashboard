@@ -209,14 +209,13 @@ function nowNext(sessions) {
   const a = on || sessions.find(x => x.start && t(x.start) > now);
   return a ? { a, on: !!on } : null;
 }
-// The Zoom link for the "Join the session" button: the session on now or next today, then the next
-// programme day's, then any session's, then an Important link with "zoom" in its name.
+// The Zoom link for the "Join the session" button, taken from the agenda (the same links the Agenda page shows):
+// the session on now or next today, then the next programme day's, then any session's.
 function sessionZoom(D, C) {
   if (C.after) return '';
   const today = C.today ? C.sessions(C.today) : [], n = nowNext(today), ahead = (D.agenda || []).filter(a => a.date >= (C.today || ''));
   const a = (n && n.a.zoom && n.a) || today.find(x => x.zoom) || ahead.find(x => x.zoom) || (D.agenda || []).find(x => x.zoom);
-  const l = (D.links || []).find(x => /zoom/i.test(x.name) && x.url);
-  return (a && a.zoom) || (l && l.url) || '';
+  return (a && a.zoom) || '';
 }
 const joinSession = (D, C) => { const u = sessionZoom(D, C); return u ? `<a class="btn join" href="${safeUrl(u)}" target="_blank" rel="noopener">Join the session</a>` : ''; };
 const joinBtn = a => a.zoom ? ` <a class="btn" href="${safeUrl(a.zoom)}" target="_blank" rel="noopener">Join on Zoom</a>` : '';
