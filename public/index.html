@@ -49,6 +49,7 @@ main{flex:1;padding:30px 34px;max-width:1320px;min-width:0}
 .top h1{font-size:46px;margin:0;line-height:1;font-weight:800;letter-spacing:-.02em}
 .top .meta{color:var(--m);margin-top:8px}
 .pill{display:inline-block;background:var(--pk);color:var(--ink);font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;margin-left:8px;vertical-align:middle;border:1.5px solid var(--ink)}
+.topr{display:flex;align-items:center;gap:16px;flex-wrap:wrap}.btn.join{font-size:16px;padding:12px 20px}
 .count{background:var(--v);color:#fff;border:2px solid var(--ink);border-radius:18px;padding:12px 20px;text-align:center;min-width:130px;box-shadow:var(--sh);transform:rotate(-2deg);font-weight:600}
 .count b{display:block;font-size:36px;line-height:1;color:var(--y)}
 .grid{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:20px}
@@ -208,6 +209,16 @@ function nowNext(sessions) {
   const a = on || sessions.find(x => x.start && t(x.start) > now);
   return a ? { a, on: !!on } : null;
 }
+// The Zoom link for the "Join the session" button: the session on now or next today, then the next
+// programme day's, then any session's, then an Important link with "zoom" in its name.
+function sessionZoom(D, C) {
+  if (C.after) return '';
+  const today = C.today ? C.sessions(C.today) : [], n = nowNext(today), ahead = (D.agenda || []).filter(a => a.date >= (C.today || ''));
+  const a = (n && n.a.zoom && n.a) || today.find(x => x.zoom) || ahead.find(x => x.zoom) || (D.agenda || []).find(x => x.zoom);
+  const l = (D.links || []).find(x => /zoom/i.test(x.name) && x.url);
+  return (a && a.zoom) || (l && l.url) || '';
+}
+const joinSession = (D, C) => { const u = sessionZoom(D, C); return u ? `<a class="btn join" href="${safeUrl(u)}" target="_blank" rel="noopener">Join the session</a>` : ''; };
 const joinBtn = a => a.zoom ? ` <a class="btn" href="${safeUrl(a.zoom)}" target="_blank" rel="noopener">Join on Zoom</a>` : '';
 // Kept current while the tab stays open: redrawn every minute and when the tab is shown again.
 let liveSessions = null;
@@ -589,7 +600,7 @@ function studentApp(D) {
   const me = D.me, C = calendar(D.agenda);
   const mates = D.students.filter(s => s.team && s.team === me.team && s.name !== me.name);
   const dayLine = C.before ? `Starts ${fmtDate(C.dates[0], { weekday: 'short', day: 'numeric', month: 'short' })} · ${C.daysToGo} day${C.daysToGo === 1 ? '' : 's'} to go` : C.after ? 'Programme complete' : C.dates.length ? `Day ${C.cur + 1} of ${C.dates.length} · ${C.phaseOf(C.today)}` : '';
-  const header = `${D.canSwitch ? `<div class="note">You are looking at the student dashboard as a committee member.${D.preview ? ' The profile shown is a stand-in, because you are not enrolled as a student.' : ''} <a href="#" data-view="sc">Back to committee view</a></div>` : ''}<div class="top"><div><h1>${h(me.name)}</h1><div class="meta">${h(me.uni)}${me.team ? `<span class="pill">${h(me.team)}</span>` : ''}</div></div>${dayLine ? `<div class="count"><b>${C.before ? C.daysToGo : C.after ? '✓' : C.cur + 1}</b>${C.before ? 'days to go' : C.after ? 'complete' : C.gap ? 'next programme day' : 'day'}</div>` : ''}</div>`;
+  const header = `${D.canSwitch ? `<div class="note">You are looking at the student dashboard as a committee member.${D.preview ? ' The profile shown is a stand-in, because you are not enrolled as a student.' : ''} <a href="#" data-view="sc">Back to committee view</a></div>` : ''}<div class="top"><div><h1>${h(me.name)}</h1><div class="meta">${h(me.uni)}${me.team ? `<span class="pill">${h(me.team)}</span>` : ''}</div></div><div class="topr">${joinSession(D, C)}${dayLine ? `<div class="count"><b>${C.before ? C.daysToGo : C.after ? '✓' : C.cur + 1}</b>${C.before ? 'days to go' : C.after ? 'complete' : C.gap ? 'next programme day' : 'day'}</div>` : ''}</div></div>`;
   const todaySessions = C.today ? C.sessions(C.today) : [];
   const todos = todaySessions.flatMap(a => lines(a.studentTodo));
   const key = (i, t) => `todo:${C.today}:${i}:${t.slice(0, 30)}`;
@@ -693,7 +704,7 @@ function committeeApp(D) {
     $('#checklist').outerHTML = checklist(); wireChecklist(); $('#brief').outerHTML = brief();
   });
   const header = `<div class="top"><div><h1>Steering committee</h1><div class="meta">${h(me.name)}${me.uni ? ', ' + h(me.uni) : ''}${me.teams.length ? `<span class="pill">${h(me.teams.join(', '))}</span>` : ''}</div></div>
-    <div class="count"><b>${C.before ? C.daysToGo : C.after ? '✓' : C.cur + 1}</b>${C.before ? 'days to launch' : C.after ? 'complete' : C.gap ? 'next programme day' : 'programme day'}</div></div>`;
+    <div class="topr">${joinSession(D, C)}<div class="count"><b>${C.before ? C.daysToGo : C.after ? '✓' : C.cur + 1}</b>${C.before ? 'days to launch' : C.after ? 'complete' : C.gap ? 'next programme day' : 'programme day'}</div></div></div>`;
   const scToday = C.live ? C.sessions(C.today).filter(a => a.scTodo) : [];
   const brief = () => { const next = nextTask(); return `<div class="card brief" id="brief"><h2>This week</h2>
         ${C.before ? `<p><strong>${C.daysToGo} day${C.daysToGo === 1 ? '' : 's'}</strong> until SECIP starts.</p>` : C.after ? '<p>The programme has finished. Thank you.</p>' : C.gap ? `<p><strong>No sessions today.</strong> Day ${C.cur + 1} is on ${fmtDate(C.today, { weekday: 'long', day: 'numeric', month: 'short' })}: ${h(C.headline(C.today))}.</p>` : `<p>Today is <strong>Day ${C.cur + 1}</strong>: ${h(C.headline(C.today))}.</p>`}
