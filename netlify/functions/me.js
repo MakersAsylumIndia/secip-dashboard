@@ -8,9 +8,9 @@ const days = rec => [...Array(10)].map((_, i) => !!rec[`Day ${i + 1}`]);
 const photo = att => (att && att[0] && ((att[0].thumbnails && att[0].thumbnails.large && att[0].thumbnails.large.url) || att[0].url)) || null;
 const same = (a, b) => (a || '').trim().toLowerCase() === b;
 // Who an Important Link is for, from its Audience tag(s): Everyone, Students or Steering Committee.
-// Untagged links (or an unknown tag) count as Everyone. Works for a single or multiple select.
+// Links with no tag (or an unknown tag) are not shown to anyone. Works for a single or multiple select.
 const AUD = { everyone: 'everyone', students: 'students', student: 'students', 'steering committee': 'sc' };
-const audOf = l => { const v = [...new Set([].concat(l.Audience || []).map(x => AUD[String(x).trim().toLowerCase()]).filter(Boolean))]; return v.length ? v : ['everyone']; };
+const audOf = l => { const v = [...new Set([].concat(l.Audience || []).map(x => AUD[String(x).trim().toLowerCase()]).filter(Boolean))]; return v; };
 
 exports.handler = async event => {
   const s = verify(readCookie(event.headers));
@@ -50,8 +50,9 @@ exports.handler = async event => {
         teams: m['Assigned teams'] || [], bio: m['Short bio'] || '', linkedin: m.LinkedIn || '',
         confirmed: !!m.Confirmed,
       })),
-      // Students get only links tagged Everyone or Students; committee-only links never reach them.
-      links: T['Important Links'].filter(l => l.Name && (!asStudent || audOf(l).some(a => a !== 'sc')))
+      // Each view gets the links tagged for it plus those tagged Everyone; untagged links are hidden.
+      // Students never receive committee links, and the committee view leaves out student-only links.
+      links: T['Important Links'].filter(l => { const mine = asStudent ? 'students' : 'sc'; return l.Name && audOf(l).some(a => a === mine || a === 'everyone'); })
         .sort((a, b) => (a.Order ?? 9999) - (b.Order ?? 9999) || a.Name.localeCompare(b.Name))
         .map(l => { const aud = audOf(l); return { name: l.Name, note: l.Remarks || '', url: l.URL || '', due: l['Event Date/Deadline'] || null, aud, sc: aud.includes('sc') }; }),
       agenda: T.Agenda.filter(a => a.Session && a.Date).map(a => ({
