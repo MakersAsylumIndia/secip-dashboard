@@ -100,6 +100,9 @@ exports.handler = async event => {
         name: u.Name, rep: u['SC representative'] || '', participation: u.Participation || 'Not started',
         studentList: u['Student list'] || 'Not started', mentorList: u['Mentor list'] || 'Not started',
       }));
+      // What each partner university provides (panelists, mentors, academics...), same for every university
+      data.requirements = (T['University partner requirements'] || []).filter(r => r['Input/program requirement'])
+        .map(r => ({ item: String(r['Input/program requirement']).trim(), notes: String(r.Notes || '').replace(/^[ \t]*\*(?!\*)[ \t]*/gm, '- ').trim(), when: String(r['Date/s required'] || '').trim(), number: String(r['Number required'] || '').trim() }));
       data.attendance = students.filter(x => x.Name).map(x => ({ name: x.Name, uni: x.University || '', team: x['Team number'] || '', att: days(x) }));
     }
     // Which layer answered (memory, shared, stale or airtable): handy when checking the cache works.
