@@ -652,6 +652,7 @@ function studentApp(D) {
       <div class="card"><h2>Skills I bring</h2>${me.skills ? `<p>${h(me.skills)}</p>` : '<p class="empty">Add your skills on the application form and they’ll show here.</p>'}</div>
       <div class="card"><h2>My team</h2>${mates.length ? mates.map(m => `<div class="row"><div class="person"><div class="av">${h(ini(m.name))}</div><div><b>${h(m.name)}</b><div class="sub">${h([m.uni, m.country].filter(Boolean).join(', '))}</div></div></div></div>`).join('') : '<p class="empty">Teams are announced before Day 1.</p>'}</div>
       <div class="card s3"><h2>Attendance</h2><div class="tl" style="margin-top:6px">${me.att.map((a, i) => `<div class="step ${a ? 'done' : ''}"><div class="dot"></div><div class="d">Day ${i + 1}</div></div>`).join('')}</div></div></div>` },
+    { id: 'agenda', label: 'Agenda', render: () => `<div class="card"><h2>Full agenda</h2><p class="sub">${tzNote()}</p>${agendaHTML(C, 'studentTodo')}</div>` },
     ...((D.assessments || []).length ? [assessPage(D, me)] : []),
     ...((D.lessons && (D.lessons.lessons || []).length) ? [lessonsPage(D, me)] : []),
     { id: 'directory', label: 'Student directory', render: () => `<div class="card"><h2>Student directory</h2><input class="search" id="q" type="search" placeholder="Search by name, university, country or goal" aria-label="Search students"><div class="cards" id="dir"></div></div>`,
@@ -668,7 +669,6 @@ function studentApp(D) {
         draw(''); } },
     pastPage(sdgOf(me.sdg)),
     { id: 'mentors', label: 'Mentor gallery', render: () => g.html, after: g.wire },
-    { id: 'agenda', label: 'Agenda', render: () => `<div class="card"><h2>Full agenda</h2><p class="sub">${tzNote()}</p>${agendaHTML(C, 'studentTodo')}</div>` },
     { id: 'contacts', label: 'Committee contacts', render: () => `<div class="card"><h2>Steering Committee contacts</h2>
       <p class="sub" style="margin:-4px 0 14px">Not sure who to ask? Start with the representative from your own university.</p>
       ${contacts.length ? `<div class="cards">${contacts.map(c => `<div class="card person"><div class="av">${h(ini(c.name))}</div><div><b>${h(c.name)}</b><div class="sub">${h(c.uni)}</div>
