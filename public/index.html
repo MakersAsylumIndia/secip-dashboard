@@ -487,17 +487,16 @@ function assessStatus(a, P, me) {
   }
   if (a.kind === 'pitch' && P.team !== null) return P.team ? { cls: 'Confirmed', text: 'Team documents in' } : { cls: 'Pending', text: 'Team documents due' };
   if (a.kind === 'lessons' && D_ && (D_.lessons.lessons || []).length && !isMonash(me)) { const n = D_.lessons.lessons.length, d = [...lessonsDone(D_)].length; return d >= n ? { cls: 'Confirmed', text: 'All lessons complete' } : { cls: d ? 'Pending' : 'Not', text: `${d} of ${n} lessons` }; }
-  if (a.kind === 'participation') { const ok = P.reflections >= PARTICIPATION_DAYS && P.self1 && P.self2; return ok ? { cls: 'Confirmed', text: 'On track' } : { cls: 'Pending', text: 'In progress' }; }
+  if (a.kind === 'participation') { const ok = P.reflections >= PARTICIPATION_DAYS; return ok ? { cls: 'Confirmed', text: 'On track' } : { cls: 'Pending', text: 'In progress' }; }
   return null;
 }
 function assessCard(a, P, me) {
   const st = assessStatus(a, P, me);
   const open = { eportfolio: 'Submission form', lessons: 'Open the lessons', forum: 'Open the forum' }[a.kind] || 'Open';
-  const yn = b => b ? '<span class="st Confirmed">Done</span>' : '<span class="st Pending">Not yet</span>';
   return `<div class="card" id="as-${h(a.name.replace(/\W+/g, '-').toLowerCase())}"><div class="ahead"><h2>${h(a.name)}</h2>${st ? `<span class="st ${st.cls}">${h(st.text)}</span>` : ''}</div>
     <div>${a.value ? `<span class="tag">Worth ${h(a.value)}</span>` : ''}${a.due ? `<span class="tag">Due ${h(dueLabel(a))}</span>` : a.dueText ? `<span class="tag">${h(a.dueText.split(/(?<=\.)\s/)[0])}</span>` : ''}</div>
     ${a.purpose ? `<p class="sub">${h(a.purpose)}</p>` : ''}
-    ${P && a.kind === 'participation' ? `<ul class="checks"><li><span>Daily reflections (${PARTICIPATION_DAYS} needed)</span><b>${P.reflections} of ${PARTICIPATION_DAYS}</b></li><li><span>Self-evaluation, week 1</span>${yn(P.self1)}</li><li><span>Self-evaluation, week 2</span>${yn(P.self2)}</li></ul>` : ''}
+    ${P && a.kind === 'participation' ? `<ul class="checks"><li><span>Daily reflections (${PARTICIPATION_DAYS} needed)</span><b>${P.reflections} of ${PARTICIPATION_DAYS}</b></li></ul>` : ''}
     ${P && a.kind === 'pitch' && P.team === null ? '<p class="sub">Your team’s submission status will show here once you are in a team.</p>' : ''}
     <div class="acts">${P && a.kind === 'eportfolio' && P.eportfolio && P.eportfolio.url ? `<a class="btn" href="${safeUrl(P.eportfolio.url)}" target="_blank" rel="noopener">My ePortfolio</a>` : ''}
       ${a.kind === 'lessons' && D_ && (D_.lessons.lessons || []).length && !isMonash(me) ? `<a class="btn" href="#lessons">${h(open)}</a>` : a.link && !(a.kind === 'eportfolio' && isMonash(me)) ? `<a class="btn" href="${safeUrl(a.link)}" target="_blank" rel="noopener">${h(open)}</a>` : ''}
