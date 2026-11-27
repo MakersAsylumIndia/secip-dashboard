@@ -88,12 +88,12 @@ exports.handler = async event => {
       data.contacts = committee
         .filter(x => x.Name && x.Email)
         .filter(x => { const k = x.Email.trim().toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })
-        .map(x => ({ name: x.Name, uni: x.University || '', email: x.Email.trim(), rep: isRep(x) }));
+        .map(x => ({ name: x.Name, uni: x.University || '', email: x.Email.trim(), rep: isRep(x), photo: photo(x.Photo) }));
     } else {
       // The checklist is read straight from Airtable so a tick saved a moment ago shows at once.
       const tasks = await airtable('SC Tasks').then(r => shape({ 'SC Tasks': r })['SC Tasks']).catch(() => T['SC Tasks']);
       data.me = { name: who.Name || '', uni: (who.University || '').trim(), role: who.Role || '', teams: who['Assigned teams'] || [] };
-      data.committee = committee.filter(x => x.Name).map(x => ({ name: x.Name, uni: x.University || '', role: x.Role || '' }));
+      data.committee = committee.filter(x => x.Name).map(x => ({ name: x.Name, uni: x.University || '', role: x.Role || '', photo: photo(x.Photo) }));
       data.tasks = tasks.filter(t => t.Task).map(t => ({ id: t.id, task: t.Task, notes: t.Notes || '', due: t['Due date'] || null, milestone: !!t.Milestone, doneBy: t['Done by'] || [] }));
       data.updates = T.Updates.filter(u => u.Title).map(u => ({ title: u.Title, date: u.Date || null, summary: u.Summary || '' }));
       data.universityStatus = universities.filter(u => u.Name).map(u => ({
