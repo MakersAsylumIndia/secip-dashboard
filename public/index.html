@@ -614,6 +614,7 @@ function studentApp(D) {
 
   shell(D, [
     { id: 'home', label: 'Home', render: () => `${header}<div class="grid">
+      <div class="card s3"><h2>Programme timeline</h2>${timeline(C)}</div>
       <div class="card brief"><h2>Morning brief</h2>
         ${C.dates.length ? `<p>${C.before ? `<strong>Here’s a preview of Day 1.</strong> Day 1: ` : C.gap ? `<strong>No sessions today.</strong> Day ${C.cur + 1} is on ${fmtDate(C.today, { weekday: 'long', day: 'numeric', month: 'short' })}: ` : C.after ? 'Final day: ' : 'Today: '}<strong>${h(C.headline(C.today) || 'Programme day')}</strong>.</p>
         ${C.live ? nowNextHTML(todaySessions) : !C.after && todaySessions[0] ? `<p>First session at ${h(timeLabel(todaySessions[0]))}.</p>` : ''}
@@ -624,7 +625,6 @@ function studentApp(D) {
       <div class="card r2"><h2>Important links</h2>${linksHTML(D.links)}<p class="sub" style="margin-top:10px">Questions? <a href="#contacts">Contact your Steering Committee representative</a>.</p></div>
       <div class="card s2"><h2>Meet the mentors</h2>${D.mentors.slice(0, 4).map(m => `<div class="row"><div class="person"><div class="av">${m.photo ? `<img src="${safeUrl(m.photo)}" alt="" loading="lazy">` : h(ini(m.name))}</div><div><b>${h(m.name)}</b><div class="sub">${h(m.expertise.slice(0, 2).join(', '))}</div></div></div></div>`).join('') || '<p class="empty">Mentors will be announced soon.</p>'}
         ${D.mentors.length ? `<button class="btn" type="button" style="margin-top:10px" onclick="location.hash='mentors'">See all mentors</button>` : ''}</div>
-      <div class="card s3"><h2>Programme timeline</h2>${timeline(C)}</div>
       <div class="card s3"><h2>People to meet</h2><p class="sub" style="margin:-4px 0 12px">Students outside your team who care about the same goals as you.</p>
         ${MM.length ? `<div class="cards">${MM.slice(0, 3).map(x => matchCard(x, me)).join('')}</div><button class="btn" type="button" style="margin-top:12px" onclick="location.hash='matchmaker'">See all ${MM.length} matches</button>` : matchEmpty(me)}</div>
       <div class="card s3"><h2>Past projects on your goals</h2><p class="sub" style="margin:-4px 0 12px">What earlier SECIP teams built for the goals you care about.</p><div class="cards" id="pphome"><p class="empty">Loading…</p></div>
